@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Button } from "./_components/ui/button";
 import { LogInIcon } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -37,10 +38,12 @@ export default function Home() {
           Este é o seu sistema de diagnóstico ambiental. Faça login para acessar
           o sistema e começar a utilizar as funcionalidades disponíveis.
         </p>
-        <Button variant="outline" className="gap-2 px-6 py-3 text-green-500">
-          <LogInIcon />
-          Acessar Sistema
-        </Button>
+        <Link href="/dashboard">
+          <Button variant="outline" className="gap-2 px-6 py-3 text-green-500">
+            <LogInIcon />
+            Acessar Sistema
+          </Button>
+        </Link>
       </div>
     </div>
   );
