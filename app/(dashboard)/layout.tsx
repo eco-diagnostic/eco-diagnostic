@@ -1,18 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { SidebarProvider, SidebarTrigger } from "../_components/ui/sidebar";
 import { AppSidebar } from "./_components/app-sidebar";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -23,7 +13,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="min-w-0 flex-1">
+      <main className="bg-primary/5 min-w-0 flex-1">
         <header className="flex h-16 items-center justify-between border-b px-4">
           <div className="flex items-center gap-3">
             <SidebarTrigger />
@@ -43,7 +33,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
 
-        <div className="p-4">{children}</div>
+        <div className="relative isolate overflow-hidden p-4">
+          <Image
+            src="/folha.png"
+            alt=""
+            aria-hidden="true"
+            fill
+            className="z-0 scale-[0.7] object-contain opacity-[0.05]"
+          />
+
+          <div className="relative z-10">{children}</div>
+        </div>
       </main>
     </SidebarProvider>
   );
