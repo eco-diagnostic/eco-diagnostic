@@ -1,5 +1,3 @@
-import { Button } from "@/app/_components/ui/button";
-
 const progressData = [
   {
     value: 82,

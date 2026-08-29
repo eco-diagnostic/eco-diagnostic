@@ -3,6 +3,7 @@ import "../globals.css";
 import { SidebarProvider, SidebarTrigger } from "../_components/ui/sidebar";
 import { AppSidebar } from "./_components/app-sidebar";
 import Image from "next/image";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <SidebarProvider>
       <AppSidebar />
+      <Toaster />
       <main className="bg-primary/5 min-w-0 flex-1">
         <header className="flex h-16 items-center justify-between border-b px-4">
           <div className="flex items-center gap-3">
