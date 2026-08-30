@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ProgressIndice } from "../_components/progress-indice";
+import { ProgressIndice } from "../dashboard/_components/progress-indice";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 

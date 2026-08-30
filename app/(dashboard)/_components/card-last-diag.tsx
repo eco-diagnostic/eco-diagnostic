@@ -1,6 +1,6 @@
 const CardLastDiag = () => {
   return (
-    <div className="flex flex-col gap-3 rounded-lg bg-[#1B6C23] p-4 text-white">
+    <div className="card-dots card-dots-green bg-card-green flex flex-col gap-3 rounded-lg p-4 text-white">
       <p>Último Diagnóstico</p>
       <div>
         <span className="text-4xl font-bold">64</span>

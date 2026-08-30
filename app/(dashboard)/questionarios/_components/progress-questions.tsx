@@ -32,7 +32,7 @@ export function ProgressQuestions({
             className="h-full rounded-full transition-all"
             style={{
               width: `${progressPercentage}%`,
-              backgroundColor: "#1b6c23",
+              backgroundColor: "var(--color-card-green)",
             }}
           />
         </div>

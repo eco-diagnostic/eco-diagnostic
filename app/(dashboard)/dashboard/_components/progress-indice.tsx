@@ -2,27 +2,27 @@ const progressData = [
   {
     value: 82,
     label: "Energia",
-    color: "#1B6C23", // Verde
+    color: "var(--color-card-green)",
   },
   {
     value: 68,
     label: "Água",
-    color: "#2B74A8", // Azul
+    color: "var(--color-card-blue)",
   },
   {
     value: 41,
     label: "Resíduos",
-    color: "#EF9D15", // Laranja
+    color: "var(--color-card-orange)",
   },
   {
     value: 57,
     label: "Materiais",
-    color: "#6959AA", // Roxo
+    color: "var(--color-card-purple)",
   },
   {
     value: 72,
     label: "Gestão",
-    color: "#34D399", // Cor atual
+    color: "var(--color-card-mint)",
   },
 ];
 export function ProgressIndice() {

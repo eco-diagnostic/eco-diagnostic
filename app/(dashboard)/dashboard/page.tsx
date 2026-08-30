@@ -1,9 +1,9 @@
 import { Button } from "@/app/_components/ui/button";
-import CardEvolution from "../_components/card-evolution";
+import CardEvolution from "./_components/card-evolution";
 import CardLastDiag from "../_components/card-last-diag";
-import CardRealizeDiag from "../_components/card-realize-diag";
-import { ChartPieSimple } from "../_components/example-chart";
-import { ProgressIndice } from "../_components/progress-indice";
+import CardRealizeDiag from "./_components/card-realize-diag";
+import { ChartPieSimple } from "./_components/example-chart";
+import { ProgressIndice } from "./_components/progress-indice";
 
 const HomePage = () => {
   return (

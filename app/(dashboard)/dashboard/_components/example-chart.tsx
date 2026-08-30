@@ -46,23 +46,23 @@ const chartConfig = {
   },
   energia: {
     label: "Energia",
-    color: "#1B6C23",
+    color: "var(--color-card-green)",
   },
   agua: {
     label: "Água",
-    color: "#2B74A8",
+    color: "var(--color-card-blue)",
   },
   residuos: {
     label: "Resíduos",
-    color: "#EF9D15",
+    color: "var(--color-card-orange)",
   },
   materiais: {
     label: "Materiais",
-    color: "#6959AA",
+    color: "var(--color-card-purple)",
   },
   gestao: {
     label: "Gestão",
-    color: "#34D399",
+    color: "var(--color-card-mint)",
   },
 } satisfies ChartConfig;
 

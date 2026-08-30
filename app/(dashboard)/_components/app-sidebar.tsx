@@ -28,8 +28,8 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Diagnóstico",
-    href: "/diagnostico",
+    title: "Diagnósticos",
+    href: "/diagnosticos",
     icon: Stethoscope,
   },
   {

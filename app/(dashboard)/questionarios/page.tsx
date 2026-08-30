@@ -1,5 +1,5 @@
-import { ProgressQuestions } from "../_components/progress-questions";
-import { QuestionnaireFreeform } from "../_components/questionnaire";
+import { ProgressQuestions } from "./_components/progress-questions";
+import { QuestionnaireFreeform } from "./_components/questionnaire";
 
 const PageQuestionarios = () => {
   return (
