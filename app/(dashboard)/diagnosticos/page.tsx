@@ -6,7 +6,7 @@ import {
 } from "@/app/_components/ui/input-group";
 import { FilterIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { columns, Diagnostic } from "./_components/columns";
-import { DataTable } from "./_components/data-table";
+import { DataTable } from "../_components/data-table";
 
 async function getData(): Promise<Diagnostic[]> {
   // Fetch data from your API here.

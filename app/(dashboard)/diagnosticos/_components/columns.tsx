@@ -2,7 +2,7 @@
 import { Badge } from "@/app/_components/ui/badge";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { type DataTableFeatures } from "./data-table-features";
+import { type DataTableFeatures } from "../../_components/data-table-features";
 import { Eye, PencilIcon, Trash } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 
