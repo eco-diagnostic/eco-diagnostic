@@ -8,6 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/app/_components/ui/sidebar";
+import { UserButton } from "@clerk/nextjs";
 import {
   ChartNoAxesColumn,
   ClipboardList,
@@ -120,7 +121,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="group-data-[collapsible=icon]:hidden">
         <div className="text-muted-foreground p-2 text-sm">
-          © 2026 Eco Diagnóstico. Todos os direitos reservados.
+          <UserButton showName />
         </div>
       </SidebarFooter>
     </Sidebar>
