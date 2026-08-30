@@ -1,12 +1,9 @@
 "use client";
 
-import { Label, Pie, PieChart } from "recharts";
-
-import { Card, CardContent } from "@/app/_components/ui/card";
+import { Pie, PieChart } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
   type ChartConfig,
 } from "@/app/_components/ui/chart";
 

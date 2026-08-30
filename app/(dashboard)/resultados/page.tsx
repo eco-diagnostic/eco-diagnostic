@@ -1,68 +1,85 @@
-import Image from "next/image";
-import { ProgressIndice } from "../dashboard/_components/progress-indice";
-import { TriangleAlert } from "lucide-react";
-import { Button } from "@/app/_components/ui/button";
+import CardLastDiag from "../_components/card-last-diag";
+import CardAreaCritic from "./_components/area-critic";
+import CardResults from "./_components/card-results";
+import CardLastYear from "./_components/last-year";
+import CardTotalDiagno from "./_components/total-result";
 
 const PageResultados = () => {
+  const items = [
+    {
+      id: 1,
+      date: "15/05/2024",
+      institution: "Instituição Exemplo",
+      status: "Diagnóstico completo",
+      total: 64,
+    },
+    {
+      id: 2,
+      date: "10/04/2024",
+      institution: "Instituição Exemplo 2",
+      status: "Diagnóstico em andamento",
+      total: 45,
+    },
+    {
+      id: 3,
+      date: "20/06/2024",
+      institution: "Instituição Exemplo 3",
+      status: "Diagnóstico concluído",
+      total: 78,
+    },
+    {
+      id: 4,
+      date: "05/07/2024",
+      institution: "Instituição Exemplo 4",
+      status: "Diagnóstico em andamento",
+      total: 32,
+    },
+    {
+      id: 5,
+      date: "15/08/2024",
+      institution: "Instituição Exemplo 5",
+      status: "Diagnóstico completo",
+      total: 90,
+    },
+    {
+      id: 6,
+      date: "25/09/2024",
+      institution: "Instituição Exemplo 6",
+      status: "Diagnóstico em andamento",
+      total: 55,
+    },
+  ];
   return (
     <div className="flex flex-col gap-4 p-4">
       {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold">Resultado do Diagnóstico</h1>
         <span className="text-muted-foreground">
-          Diagnóstico realizado em 15/05/2026
+          Visualize e acesse os resultados dis diagnósticos realizados.
         </span>
       </div>
 
-      <div className="grid grid-cols-2 items-center justify-center gap-4">
-        <div>
-          {/* INDICE */}
-          <div className="bg-primary/20 text-primary item-center flex max-w-[80%] justify-between gap-3 rounded-4xl p-4">
-            {/* ESQUERDA */}
-            <div>
-              <p>Índice de Sustentabilidade</p>
-              <p>
-                <span className="text-4xl font-bold">64</span>
-                <span className="ml-3 text-xl">/ 100</span>
-              </p>
-              <p>Nível: Em desenvolvimento</p>
-            </div>
-
-            {/* DIREITA */}
-            <div>
-              <Image src="/folha.png" alt="Folha" width={100} height={100} />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-2xl font-bold">Índice por área</p>
-          <ProgressIndice />
-        </div>
+      <div className="grid w-full grid-cols-4 gap-4">
+        <CardLastDiag />
+        <CardLastYear />
+        <CardTotalDiagno />
+        <CardAreaCritic />
       </div>
 
-      <div>
-        <p className="text-2xl font-bold">Principal ponto crítico</p>
-        <div className="mt-4 flex items-center gap-4 rounded-2xl border border-solid border-amber-500 bg-amber-500/10 p-4">
-          <TriangleAlert className="text-orange-500" />
-          <div>
-            <p className="text-2xl font-bold">Resíduos - 41%</p>
-            <p>
-              A instituição possui pouca estrutura para separação e destinação
-              adequada de resíduos.
-            </p>
-          </div>
-        </div>
+      <div className="rounded-xl border border-solid border-gray-200 p-4">
+        <h1 className="text-xl font-bold">Histórico de resultados</h1>
 
-        {/* BUTTONS */}
-        <div className="mt-4 flex gap-4">
-          <Button
-            variant="outline"
-            className="border-primary text-primary hover:bg-primary/20 hover:text-primary/80 w-xl p-4 font-medium"
-          >
-            Ver recomendações
-          </Button>
-          <Button className="w-xl p-4">Ver evolução</Button>
+        <div className="grid grid-cols-3 gap-2">
+          {items.map((item) => (
+            <CardResults
+              key={item.id}
+              id={item.id}
+              date={item.date}
+              institution={item.institution}
+              status={item.status}
+              total={item.total}
+            />
+          ))}
         </div>
       </div>
     </div>
