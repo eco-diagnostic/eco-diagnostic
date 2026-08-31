@@ -2,8 +2,25 @@ import Image from "next/image";
 import { Button } from "./_components/ui/button";
 import { LogInIcon } from "lucide-react";
 import { SignInButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { prisma } from "./_lib/prisma";
 
-export default function Home() {
+export default async function Home() {
+  const { userId } = await auth();
+
+  if (userId) {
+    const institution = await prisma.institution.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!institution) {
+      redirect("/onboarding");
+    } else {
+      redirect("/dashboard");
+    }
+  }
   return (
     // DIV GERAL
     <div className="grid h-screen grid-cols-2">
