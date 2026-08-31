@@ -2,26 +2,23 @@
 
 import { Button } from "@/app/_components/ui/button";
 import { ChartResults } from "./chart-results";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 
 interface CardsResultsProps {
+  id: string;
   date: string;
   institution: string;
   status: string;
   total: number;
-  id: number;
 }
 
 const CardResults = ({
-  date,
   id,
+  date,
   institution,
   status,
   total,
 }: CardsResultsProps) => {
-  const handleClick = () => {
-    redirect(`/resultados/${id}`);
-  };
   return (
     <div className="mt-4 flex items-center justify-between rounded-xl border border-solid border-gray-200 p-4">
       <div className="flex items-center gap-2">
@@ -30,13 +27,15 @@ const CardResults = ({
         </div>
         <div className="flex flex-col">
           <span>{date}</span>
-          <span className="text-bold">{institution}</span>
+          <span className="font-bold">{institution}</span>
           <span className="text-muted-foreground">{status}</span>
         </div>
       </div>
 
-      <div className="">
-        <Button onClick={handleClick}>Ver detalhes</Button>
+      <div>
+        <Link href={`/resultados/${id}`}>
+          <Button>Ver detalhes</Button>
+        </Link>
       </div>
     </div>
   );

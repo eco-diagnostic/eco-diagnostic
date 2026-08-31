@@ -1,4 +1,10 @@
-const progressData = [
+interface ProgressItem {
+  label: string;
+  value: number;
+  color?: string;
+}
+
+const defaultProgressData: ProgressItem[] = [
   {
     value: 14,
     label: "Energia",
@@ -25,10 +31,25 @@ const progressData = [
     color: "var(--color-card-mint)",
   },
 ];
-export function ProgressIndice() {
+
+const pillarColors: Record<string, string> = {
+  Energia: "var(--color-card-green)",
+  Água: "var(--color-card-blue)",
+  Resíduos: "var(--color-card-orange)",
+  Materiais: "var(--color-card-purple)",
+  Gestão: "var(--color-card-mint)",
+};
+
+interface ProgressIndiceProps {
+  data?: ProgressItem[];
+}
+
+export function ProgressIndice({ data }: ProgressIndiceProps) {
+  const items = data && data.length > 0 ? data : defaultProgressData;
+
   return (
     <div className="space-y-4">
-      {progressData.map((progress) => (
+      {items.map((progress) => (
         <div key={progress.label} className="w-full max-w-sm">
           <div className="mb-2 flex justify-between text-sm">
             <span>{progress.label}</span>
@@ -46,7 +67,10 @@ export function ProgressIndice() {
               className="h-full rounded-full transition-all"
               style={{
                 width: `${progress.value}%`,
-                backgroundColor: progress.color,
+                backgroundColor:
+                  progress.color ||
+                  pillarColors[progress.label] ||
+                  "var(--color-card-green)",
               }}
             />
           </div>
