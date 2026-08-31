@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
+
 export type EvolucaoArea = {
   area: string;
   inicial: number;
@@ -43,14 +44,10 @@ const areaConfig: Record<string, { icon: LucideIcon; className: string }> = {
   },
 };
 
-export const evolucaoData = [
-  { area: "Energia", inicial: 68, atual: 82 },
-  { area: "Água", inicial: 55, atual: 60 },
-  { area: "Resíduos", inicial: 72, atual: 66 },
-  { area: "Materiais", inicial: 48, atual: 58 },
-  { area: "Gestão", inicial: 80, atual: 86 },
-];
+export const evolucaoData: EvolucaoArea[] = [];
+
 const columnHelper = createColumnHelper<DataTableFeatures, EvolucaoArea>();
+
 export const columns = columnHelper.columns([
   columnHelper.accessor("area", {
     header: "Área",
@@ -93,7 +90,7 @@ export const columns = columnHelper.columns([
     cell: (info) => {
       const inicial = Number(info.row.original.inicial);
       const atual = Number(info.getValue());
-      const variacao = ((atual - inicial) / inicial) * 100;
+      const variacao = inicial > 0 ? ((atual - inicial) / inicial) * 100 : (atual - inicial);
       const isPositive = variacao >= 0;
       const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
 
