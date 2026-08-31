@@ -9,32 +9,18 @@ import {
 
 export const description = "A simple pie chart";
 
-const chartData = [
-  {
-    area: "energia",
-    porcentagem: 82,
-    fill: "var(--color-energia)",
-  },
-  {
-    area: "agua",
-    porcentagem: 68,
-    fill: "var(--color-agua)",
-  },
-  {
-    area: "residuos",
-    porcentagem: 41,
-    fill: "var(--color-residuos)",
-  },
-  {
-    area: "materiais",
-    porcentagem: 57,
-    fill: "var(--color-materiais)",
-  },
-  {
-    area: "gestao",
-    porcentagem: 72,
-    fill: "var(--color-gestao)",
-  },
+interface ChartDataItem {
+  area: string;
+  porcentagem: number;
+  fill?: string;
+}
+
+const emptyChartData: ChartDataItem[] = [
+  { area: "energia", porcentagem: 0, fill: "var(--color-card-green)" },
+  { area: "agua", porcentagem: 0, fill: "var(--color-card-blue)" },
+  { area: "residuos", porcentagem: 0, fill: "var(--color-card-orange)" },
+  { area: "materiais", porcentagem: 0, fill: "var(--color-card-purple)" },
+  { area: "gestao", porcentagem: 0, fill: "var(--color-card-mint)" },
 ];
 
 const chartConfig = {
@@ -63,11 +49,20 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ChartPieSimple() {
-  const indiceGeral = Math.round(
-    chartData.reduce((total, item) => total + item.porcentagem, 0) /
-      chartData.length,
-  );
+interface ChartPieSimpleProps {
+  data?: ChartDataItem[];
+}
+
+export function ChartPieSimple({ data }: ChartPieSimpleProps) {
+  const hasData = Boolean(data && data.length > 0);
+  const currentData = hasData ? (data as ChartDataItem[]) : emptyChartData;
+
+  const indiceGeral = hasData
+    ? Math.round(
+        currentData.reduce((total, item) => total + item.porcentagem, 0) /
+          (currentData.length || 1),
+      )
+    : 0;
 
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[250px]">
@@ -76,7 +71,7 @@ export function ChartPieSimple() {
           <ChartTooltip cursor={false} formatter={(value) => `${value}%`} />
 
           <Pie
-            data={chartData}
+            data={currentData}
             dataKey="porcentagem"
             nameKey="area"
             innerRadius={60}
@@ -86,10 +81,12 @@ export function ChartPieSimple() {
 
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold text-green-700">
-          {indiceGeral}%
+          {hasData ? `${indiceGeral}%` : "0%"}
         </span>
 
-        <span className="text-xs text-gray-500">Índice geral</span>
+        <span className="text-xs text-gray-500">
+          {hasData ? "Índice geral" : "Sem diagnóstico"}
+        </span>
       </div>
     </div>
   );

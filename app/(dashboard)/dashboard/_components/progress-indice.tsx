@@ -1,34 +1,42 @@
-const progressData = [
-  {
-    value: 82,
-    label: "Energia",
-    color: "var(--color-card-green)",
-  },
-  {
-    value: 68,
-    label: "Água",
-    color: "var(--color-card-blue)",
-  },
-  {
-    value: 41,
-    label: "Resíduos",
-    color: "var(--color-card-orange)",
-  },
-  {
-    value: 57,
-    label: "Materiais",
-    color: "var(--color-card-purple)",
-  },
-  {
-    value: 72,
-    label: "Gestão",
-    color: "var(--color-card-mint)",
-  },
+interface ProgressItem {
+  label: string;
+  value: number;
+  color?: string;
+}
+
+const emptyProgressData: ProgressItem[] = [
+  { value: 0, label: "Energia", color: "var(--color-card-green)" },
+  { value: 0, label: "Água", color: "var(--color-card-blue)" },
+  { value: 0, label: "Resíduos", color: "var(--color-card-orange)" },
+  { value: 0, label: "Materiais", color: "var(--color-card-purple)" },
+  { value: 0, label: "Gestão", color: "var(--color-card-mint)" },
 ];
-export function ProgressIndice() {
+
+const pillarColors: Record<string, string> = {
+  Energia: "var(--color-card-green)",
+  Água: "var(--color-card-blue)",
+  Resíduos: "var(--color-card-orange)",
+  Materiais: "var(--color-card-purple)",
+  Gestão: "var(--color-card-mint)",
+};
+
+interface ProgressIndiceProps {
+  data?: ProgressItem[];
+}
+
+export function ProgressIndice({ data }: ProgressIndiceProps) {
+  const hasData = Boolean(data && data.length > 0);
+  const items = hasData ? (data as ProgressItem[]) : emptyProgressData;
+
   return (
     <div className="space-y-4">
-      {progressData.map((progress) => (
+      {!hasData && (
+        <p className="text-xs text-muted-foreground">
+          Nenhum diagnóstico registrado. Valores em 0%.
+        </p>
+      )}
+
+      {items.map((progress) => (
         <div key={progress.label} className="w-full max-w-sm">
           <div className="mb-2 flex justify-between text-sm">
             <span>{progress.label}</span>
@@ -46,7 +54,10 @@ export function ProgressIndice() {
               className="h-full rounded-full transition-all"
               style={{
                 width: `${progress.value}%`,
-                backgroundColor: progress.color,
+                backgroundColor:
+                  progress.color ||
+                  pillarColors[progress.label] ||
+                  "var(--color-card-green)",
               }}
             />
           </div>
