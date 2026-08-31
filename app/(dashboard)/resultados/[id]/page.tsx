@@ -5,6 +5,7 @@ import { Button } from "@/app/_components/ui/button";
 import { ProgressIndice } from "../_components/progress-indice";
 import { prisma } from "@/app/_lib/prisma";
 import { Pillar } from "@prisma/client";
+import AiReportButton from "@/app/_components/ai-report.button";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,7 @@ const PageSlugResult = async ({ params }: PageSlugResultProps) => {
     include: {
       institution: true,
       pillarScores: true,
+      actionPlan: true,
     },
   });
 
@@ -152,8 +154,12 @@ const PageSlugResult = async ({ params }: PageSlugResultProps) => {
         </div>
 
         {/* BUTTONS */}
-        <div className="mt-4 flex gap-4">
-          <Link href="/recomendacoes" className="w-xl">
+        <div className="mt-4 flex flex-wrap gap-4">
+          <AiReportButton
+            diagnosticId={id}
+            initialPlan={diagnostic.actionPlan}
+          />
+          <Link href="/recomendacoes" className="flex-1 min-w-[200px]">
             <Button
               variant="outline"
               className="border-primary text-primary hover:bg-primary/20 hover:text-primary/80 w-full p-4 font-medium"
@@ -161,7 +167,7 @@ const PageSlugResult = async ({ params }: PageSlugResultProps) => {
               Ver recomendações
             </Button>
           </Link>
-          <Link href="/evolucao" className="w-xl">
+          <Link href="/evolucao" className="flex-1 min-w-[200px]">
             <Button className="w-full p-4">Ver evolução</Button>
           </Link>
         </div>

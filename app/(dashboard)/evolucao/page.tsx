@@ -12,6 +12,7 @@ import { Pillar } from "@prisma/client";
 import { Button } from "@/app/_components/ui/button";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
+import AiReportButton from "@/app/_components/ai-report.button";
 
 export const dynamic = "force-dynamic";
 
@@ -24,14 +25,26 @@ const pillarLabels: Record<Pillar, string> = {
 };
 
 const PageEvolucao = async () => {
-  const diagnostics = await prisma.diagnostic.findMany({
-    include: {
-      pillarScores: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+  const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+
+  const [diagnostics, institution] = await Promise.all([
+    prisma.diagnostic.findMany({
+      include: {
+        pillarScores: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
+    prisma.institution.findFirst(),
+  ]);
+
+  const latestSummary = institution
+    ? await prisma.generalSummary.findFirst({
+        where: { institutionId: institution.id },
+        orderBy: { createdAt: "desc" },
+      })
+    : null;
 
   const hasData = diagnostics.length > 0;
   const firstDiag = hasData ? diagnostics[0] : null;
@@ -140,11 +153,21 @@ const PageEvolucao = async () => {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex flex-col">
-        <h1 className="text-2xl font-bold">Evolução dos Diagnósticos</h1>
-        <span className="text-muted-foreground">
-          Acompanhe a evolução do índice de sustentabilidade ao longo do tempo
-        </span>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Evolução dos Diagnósticos</h1>
+          <span className="text-muted-foreground">
+            Acompanhe a evolução do índice de sustentabilidade ao longo do tempo
+          </span>
+        </div>
+
+        <AiReportButton
+          month={currentMonth}
+          initialPlan={latestSummary}
+          buttonLabel="Análise dos 30 Dias (IA)"
+          dialogTitle="Relatório de Evolução dos Últimos 30 Dias"
+          dialogDescription="Análise estratégica consolidada da trajetória de sustentabilidade da instituição."
+        />
       </div>
 
       <div className="flex flex-wrap gap-4 p-7">
