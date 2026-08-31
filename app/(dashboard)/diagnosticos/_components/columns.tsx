@@ -1,13 +1,13 @@
 "use client";
+
 import { Badge } from "@/app/_components/ui/badge";
 import { createColumnHelper } from "@tanstack/react-table";
+import Link from "next/link";
 
 import { type DataTableFeatures } from "../../_components/data-table-features";
 import { Eye, PencilIcon, Trash } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 export type Diagnostic = {
   id: string;
   data: string;
@@ -17,7 +17,6 @@ export type Diagnostic = {
   ações: string;
 };
 
-// Use `accessor` for data columns and `display` for columns without one.
 const columnHelper = createColumnHelper<DataTableFeatures, Diagnostic>();
 
 export const columns = columnHelper.columns([
@@ -29,7 +28,7 @@ export const columns = columnHelper.columns([
     header: "Instituição",
   }),
   columnHelper.accessor("indice", {
-    header: "Indice",
+    header: "Índice",
     cell: (info) => {
       const value = Number(info.getValue() ?? 0);
 
@@ -66,16 +65,22 @@ export const columns = columnHelper.columns([
   }),
   columnHelper.accessor("ações", {
     header: "Ações",
-    cell: () => {
+    cell: (info) => {
+      const id = info.row.original.id;
+
       return (
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Eye className="h-4 w-4 border-slate-300 text-slate-500" />
-          </Button>
-          <Button variant="outline">
-            <PencilIcon className="h-4 w-4 text-blue-500" />
-          </Button>
-          <Button variant="outline">
+          <Link href={`/resultados/${id}`}>
+            <Button variant="outline" size="sm" title="Ver detalhes">
+              <Eye className="h-4 w-4 text-slate-500" />
+            </Button>
+          </Link>
+          <Link href="/questionarios">
+            <Button variant="outline" size="sm" title="Refazer / Editar">
+              <PencilIcon className="h-4 w-4 text-blue-500" />
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" title="Excluir">
             <Trash className="h-4 w-4 text-red-500" />
           </Button>
         </div>

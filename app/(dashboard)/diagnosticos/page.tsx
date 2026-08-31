@@ -4,56 +4,50 @@ import {
   InputGroupInput,
   InputGroupAddon,
 } from "@/app/_components/ui/input-group";
-import { FilterIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { FilterIcon, PlusIcon, SearchIcon, FileText } from "lucide-react";
 import { columns, Diagnostic } from "./_components/columns";
 import { DataTable } from "../_components/data-table";
+import { prisma } from "@/app/_lib/prisma";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 async function getData(): Promise<Diagnostic[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "728ed52f",
-      data: "15/05/2024",
-      instituição: "Instituição Exemplo",
-      indice: "64",
-      status: "Concluído",
-      ações: "Ver detalhes",
+  const diagnostics = await prisma.diagnostic.findMany({
+    include: {
+      institution: true,
     },
-    {
-      id: "728ed52g",
-      data: "10/04/2024",
-      instituição: "Outra Instituição",
-      indice: "75",
-      status: "Em andamento",
-      ações: "Ver detalhes",
+    orderBy: {
+      createdAt: "desc",
     },
-    {
-      id: "728ed52h",
-      data: "20/06/2024",
-      instituição: "Terceira Instituição",
-      indice: "80",
-      status: "Pendente",
-      ações: "Ver detalhes",
-    },
-    {
-      id: "728ed52i",
-      data: "05/07/2024",
-      instituição: "Quarta Instituição",
-      indice: "90",
-      status: "Concluído",
-      ações: "Ver detalhes",
-    },
-  ];
+  });
+
+  return diagnostics.map((d) => ({
+    id: d.id,
+    data: new Date(d.createdAt).toLocaleDateString("pt-BR"),
+    instituição: d.institution?.name || "Minha Instituição",
+    indice: String(Math.round(d.overallScore ?? 0)),
+    status:
+      d.status === "CONCLUIDO"
+        ? "Concluído"
+        : d.status === "EM_ANDAMENTO"
+        ? "Em andamento"
+        : d.status === "EM_ANALISE"
+        ? "Em análise"
+        : "Pendente",
+    ações: d.id,
+  }));
 }
+
 const PageDiagnosticos = async () => {
   const data = await getData();
 
   return (
-    <div className="flex h-screen flex-col gap-4 p-4">
+    <div className="flex min-h-screen flex-col gap-4 p-4">
       <div className="flex flex-col">
         <h1 className="text-2xl font-bold">Diagnósticos</h1>
         <span className="text-muted-foreground">
-          Gerencie e acompanhe todos os diagnósticos da sia instituição.
+          Gerencie e acompanhe todos os diagnósticos da sua instituição.
         </span>
       </div>
 
@@ -63,9 +57,6 @@ const PageDiagnosticos = async () => {
             id="input-group-url"
             placeholder="Buscar diagnóstico"
           />
-          {/* <InputGroupAddon>
-            <InputGroupText>https://</InputGroupText>
-          </InputGroupAddon> */}
           <InputGroupAddon align="inline-start">
             <SearchIcon />
           </InputGroupAddon>
@@ -74,14 +65,34 @@ const PageDiagnosticos = async () => {
           <FilterIcon />
           Filtros
         </Button>
-        <Button>
-          <PlusIcon />
-          Novo diagnóstico
-        </Button>
+        <Link href="/questionarios">
+          <Button>
+            <PlusIcon />
+            Novo diagnóstico
+          </Button>
+        </Link>
       </div>
 
-      <div className="container mx-auto py-10">
-        <DataTable columns={columns} data={data} />
+      <div className="py-4">
+        {data.length > 0 ? (
+          <DataTable columns={columns} data={data} />
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 p-12 text-center">
+            <FileText className="size-12 text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Nenhum diagnóstico encontrado
+            </h3>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Sua instituição ainda não realizou nenhum diagnóstico de sustentabilidade.
+            </p>
+            <Link href="/questionarios">
+              <Button className="mt-2">
+                <PlusIcon className="mr-2 size-4" />
+                Iniciar Primeiro Diagnóstico
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
