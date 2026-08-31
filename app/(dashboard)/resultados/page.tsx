@@ -7,6 +7,8 @@ import CardTotalDiagno from "./_components/total-result";
 import { Button } from "@/app/_components/ui/button";
 import { FileQuestion, PlusIcon } from "lucide-react";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,15 @@ const pillarLabels: Record<string, string> = {
 };
 
 const PageResultados = async () => {
+  const { userId } = await auth();
+  if (!userId) {
+    redirect("/");
+  }
+
   const diagnostics = await prisma.diagnostic.findMany({
+    where: {
+      userId,
+    },
     include: {
       institution: true,
       pillarScores: true,

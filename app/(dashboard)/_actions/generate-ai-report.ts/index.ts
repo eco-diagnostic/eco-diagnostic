@@ -92,8 +92,8 @@ export const generateAiReport = async (
       },
     });
 
-    if (!diagnostic) {
-      throw new Error("Diagnóstico não encontrado.");
+    if (!diagnostic || diagnostic.userId !== userId) {
+      throw new Error("Diagnóstico não encontrado ou não autorizado.");
     }
 
     const pillarScoresText = diagnostic.pillarScores

@@ -6,6 +6,8 @@ import { ProgressIndice } from "../_components/progress-indice";
 import { prisma } from "@/app/_lib/prisma";
 import { Pillar } from "@prisma/client";
 import AiReportButton from "@/app/_components/ai-report.button";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,11 @@ const maturityLabels: Record<string, string> = {
 };
 
 const PageSlugResult = async ({ params }: PageSlugResultProps) => {
+  const { userId } = await auth();
+  if (!userId) {
+    redirect("/");
+  }
+
   const { id } = await params;
 
   const diagnostic = await prisma.diagnostic.findUnique({
@@ -53,7 +60,7 @@ const PageSlugResult = async ({ params }: PageSlugResultProps) => {
     },
   });
 
-  if (!diagnostic) {
+  if (!diagnostic || diagnostic.userId !== userId) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 p-8 text-center">
         <AlertCircle className="size-16 text-amber-500" />

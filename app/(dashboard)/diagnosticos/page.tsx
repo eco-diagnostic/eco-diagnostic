@@ -9,11 +9,16 @@ import { columns, Diagnostic } from "./_components/columns";
 import { DataTable } from "../_components/data-table";
 import { prisma } from "@/app/_lib/prisma";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-async function getData(): Promise<Diagnostic[]> {
+async function getData(userId: string): Promise<Diagnostic[]> {
   const diagnostics = await prisma.diagnostic.findMany({
+    where: {
+      userId,
+    },
     include: {
       institution: true,
     },
@@ -40,7 +45,12 @@ async function getData(): Promise<Diagnostic[]> {
 }
 
 const PageDiagnosticos = async () => {
-  const data = await getData();
+  const { userId } = await auth();
+  if (!userId) {
+    redirect("/");
+  }
+
+  const data = await getData(userId);
 
   return (
     <div className="flex min-h-screen flex-col gap-4 p-4">

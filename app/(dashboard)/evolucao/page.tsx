@@ -13,6 +13,8 @@ import { Button } from "@/app/_components/ui/button";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import AiReportButton from "@/app/_components/ai-report.button";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +27,18 @@ const pillarLabels: Record<Pillar, string> = {
 };
 
 const PageEvolucao = async () => {
+  const { userId } = await auth();
+  if (!userId) {
+    redirect("/");
+  }
+
   const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
 
   const [diagnostics, institution] = await Promise.all([
     prisma.diagnostic.findMany({
+      where: {
+        userId,
+      },
       include: {
         pillarScores: true,
       },
@@ -36,7 +46,11 @@ const PageEvolucao = async () => {
         createdAt: "asc",
       },
     }),
-    prisma.institution.findFirst(),
+    prisma.institution.findUnique({
+      where: {
+        userId,
+      },
+    }),
   ]);
 
   const latestSummary = institution

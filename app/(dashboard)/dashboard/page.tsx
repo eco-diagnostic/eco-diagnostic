@@ -7,6 +7,8 @@ import { ProgressIndice } from "./_components/progress-indice";
 import { prisma } from "@/app/_lib/prisma";
 import Link from "next/link";
 import { Pillar } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +37,15 @@ const pillarColors: Record<Pillar, string> = {
 };
 
 const HomePage = async () => {
+  const { userId } = await auth();
+  if (!userId) {
+    redirect("/");
+  }
+
   const diagnostics = await prisma.diagnostic.findMany({
+    where: {
+      userId,
+    },
     include: {
       pillarScores: true,
       institution: true,
