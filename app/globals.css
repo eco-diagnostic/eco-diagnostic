@@ -184,31 +184,64 @@
     overflow: hidden;
   }
 
-  .card-dots::before,
-  .card-dots::after {
+  .card-dots::before {
     position: absolute;
+    inset: 0;
     z-index: 0;
-    border-radius: 9999px;
     content: "";
     pointer-events: none;
-  }
 
-  .card-dots::before {
-    top: -2.5rem;
-    right: -1.5rem;
-    width: 5.5rem;
-    aspect-ratio: 1;
-    background-color: var(--card-dot-dark);
-    opacity: 0.55;
-  }
-
-  .card-dots::after {
-    right: 2rem;
-    bottom: -1.5rem;
-    width: 3rem;
-    aspect-ratio: 1;
-    background-color: var(--card-dot-darker);
-    opacity: 0.4;
+    background:
+      radial-gradient(
+        circle 2.75rem at calc(100% + 1.5rem) -1rem,
+        color-mix(in srgb, var(--card-dot-dark) 55%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 1.5rem at calc(100% - 2rem) calc(100% + 1rem),
+        color-mix(in srgb, var(--card-dot-darker) 40%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 1rem at 15% 20%,
+        color-mix(in srgb, var(--card-dot-dark) 30%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 0.6rem at 70% 45%,
+        color-mix(in srgb, var(--card-dot-darker) 25%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 0.45rem at 42% 12%,
+        color-mix(in srgb, var(--card-dot-dark) 22%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 0.8rem at 90% 68%,
+        color-mix(in srgb, var(--card-dot-darker) 28%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 0.35rem at 28% 72%,
+        color-mix(in srgb, var(--card-dot-dark) 20%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 0.5rem at 55% 88%,
+        color-mix(in srgb, var(--card-dot-darker) 24%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 0.3rem at 8% 62%,
+        color-mix(in srgb, var(--card-dot-dark) 18%, transparent) 99%,
+        transparent 100%
+      ),
+      radial-gradient(
+        circle 0.4rem at 62% 22%,
+        color-mix(in srgb, var(--card-dot-darker) 20%, transparent) 99%,
+        transparent 100%
+      );
   }
 
   .card-dots > * {

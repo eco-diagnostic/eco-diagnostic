@@ -39,7 +39,7 @@ export default function Home() {
           o sistema e começar a utilizar as funcionalidades disponíveis.
         </p>
         <SignInButton mode="modal">
-          <Button variant="outline" className="gap-2 px-6 py-3 text-green-500">
+          <Button variant="outline" className="text-primary gap-2 px-6 py-3">
             <LogInIcon />
             Acessar Sistema
           </Button>
