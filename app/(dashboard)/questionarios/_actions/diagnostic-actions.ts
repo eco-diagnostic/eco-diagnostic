@@ -2,6 +2,7 @@
 
 import { prisma } from "@/app/_lib/prisma";
 import { Pillar, MaturityLevel, DiagnosticStatus, InstitutionSize } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
 
 
 export interface QuestionWithOptions {
@@ -102,13 +103,21 @@ export interface SubmitDiagnosticPayload {
  * Submete as 20 respostas, calcula as notas dos 5 pilares, nível de maturidade e ponto crítico
  */
 export async function submitDiagnosticAction(payload: SubmitDiagnosticPayload) {
-  const userId = payload.userId || "user_default";
+  const session = await auth();
+  const userId = payload.userId || session.userId || "user_default";
   
-  // Garante a instituição
+  // Garante a instituição vinculada ao usuário
   let institutionId = payload.institutionId;
   if (!institutionId) {
-    const inst = await getOrCreateInstitutionAction(userId);
-    institutionId = inst.id;
+    const inst = await prisma.institution.findUnique({
+      where: { userId },
+    });
+    if (inst) {
+      institutionId = inst.id;
+    } else {
+      const created = await getOrCreateInstitutionAction(userId);
+      institutionId = created.id;
+    }
   }
 
   // Busca todas as perguntas e opções submetidas para conferir e calcular notas reais no backend
@@ -142,18 +151,21 @@ export async function submitDiagnosticAction(payload: SubmitDiagnosticPayload) {
     if (!question) continue;
 
     let scoreObtained = 0;
+    let validOptionId: string | null = null;
+
     if (item.selectedOptionId) {
       const option = question.options.find((o) => o.id === item.selectedOptionId);
       if (option) {
         scoreObtained = option.score;
+        validOptionId = option.id;
       }
     }
 
     processedAnswers.push({
       questionId: question.id,
       pillar: question.pillar,
-      selectedOptionId: item.selectedOptionId,
-      customText: item.customText,
+      selectedOptionId: validOptionId || undefined,
+      customText: item.customText || undefined,
       scoreObtained,
     });
 
@@ -214,8 +226,8 @@ export async function submitDiagnosticAction(payload: SubmitDiagnosticPayload) {
           create: processedAnswers.map((ans) => ({
             questionId: ans.questionId,
             pillar: ans.pillar,
-            selectedOptionId: ans.selectedOptionId,
-            customText: ans.customText,
+            selectedOptionId: ans.selectedOptionId || null,
+            customText: ans.customText || null,
             scoreObtained: ans.scoreObtained,
           })),
         },
