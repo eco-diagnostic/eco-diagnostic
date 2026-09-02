@@ -32,7 +32,6 @@ import {
   Factory,
   HelpCircle,
 } from "lucide-react";
-import Image from "next/image";
 
 interface SizeOption {
   value: InstitutionSize;
