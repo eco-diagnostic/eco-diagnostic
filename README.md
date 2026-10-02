@@ -12,7 +12,9 @@
 4. [Lógica do Backend: Busca de Questões, Cálculo de Pontuação e Regras de Negócio](#-4-lógica-do-backend-busca-de-questões-cálculo-de-pontuação-e-regras-de-negócio)
 5. [Tipagens, Interfaces e Server Actions](#-5-tipagens-interfaces-e-server-actions)
 6. [Integração com Inteligência Artificial (Gemini)](#-6-integração-com-inteligência-artificial-gemini)
-7. [Guia de Execução e Migrações](#-7-guia-de-execução-e-migrações)
+7. [Guia de Execução da Plataforma Web](#-7-guia-de-execução-e-migrações)
+8. [Aplicativo Mobile — React Native (Expo)](#-8-aplicativo-mobile--react-native-expo)
+9. [Rotas do Sistema Web](#-rotas-do-sistema)
 
 ---
 
@@ -91,7 +93,7 @@ enum Pillar {
 ## 🧮 4. Lógica do Backend: Busca de Questões, Cálculo de Pontuação e Regras de Negócio
 
 Toda a inteligência de sorteio, validação, pontuação e persistência está centralizada no arquivo de Server Actions:  
-📁 [`app/(dashboard)/questionarios/_actions/diagnostic-actions.ts`](file:///C:/xampp/htdocs/eco-diagnostico/app/%28dashboard%29/questionarios/_actions/diagnostic-actions.ts)
+📁 [`app/(dashboard)/questionarios/_actions/diagnostic-actions.ts`](app/%28dashboard%29/questionarios/_actions/diagnostic-actions.ts)
 
 Abaixo está a explicação técnica detalhada de cada etapa e de cada função do backend:
 
@@ -151,7 +153,7 @@ export async function getDiagnosticQuestionsAction(): Promise<QuestionWithOption
 
 ### 4.2. Escala de Pontuação das Alternativas (Seed)
 
-No banco de dados, cada uma das 4 opções de resposta possui um valor calibrado de `score` (de 0 a 100 pontos), definido no arquivo [`prisma/seed.ts`](file:///C:/xampp/htdocs/eco-diagnostico/prisma/seed.ts) de acordo com o grau de maturidade da prática sustentável:
+No banco de dados, cada uma das 4 opções de resposta possui um valor calibrado de `score` (de 0 a 100 pontos), definido no arquivo [`prisma/seed.ts`](prisma/seed.ts) de acordo com o grau de maturidade da prática sustentável:
 
 | Alternativa | Grau de Maturidade | Pontuação Atribuída | Exemplo Prático |
 | :---: | :--- | :---: | :--- |
@@ -322,7 +324,7 @@ const createdDiagnostic = await prisma.$transaction(async (tx) => {
 
 ## 💻 5. Tipagens, Interfaces e Server Actions
 
-As tipagens e Server Actions estão centralizadas em [`app/(dashboard)/questionarios/_actions/diagnostic-actions.ts`](file:///C:/xampp/htdocs/eco-diagnostico/app/%28dashboard%29/questionarios/_actions/diagnostic-actions.ts).
+As tipagens e Server Actions estão centralizadas em [`app/(dashboard)/questionarios/_actions/diagnostic-actions.ts`](app/%28dashboard%29/questionarios/_actions/diagnostic-actions.ts).
 
 ### 5.1. Interfaces Principais
 
@@ -412,7 +414,59 @@ npm run build
 
 ---
 
-## 📊 Rotas do Sistema
+## 📱 8. Aplicativo Mobile — React Native (Expo)
+
+Desenvolvido especificamente para a disciplina de **Desenvolvimento Mobile**, o aplicativo móvel **Eco Diagnóstico** está localizado no diretório [`mobile/`](mobile/) e oferece uma experiência 100% nativa com suporte a **execução offline** e **geração de instalador .APK**.
+
+### 8.1. Arquitetura e Tecnologias Mobile
+* **Framework:** [React Native](https://reactnative.dev/) com [Expo](https://expo.dev/) (SDK 52+)
+* **Linguagem:** TypeScript com tipagem estrita
+* **Navegação Nativa:** [React Navigation](https://reactnavigation.org/)
+  * `createBottomTabNavigator` (Abas inferiores: Início, Painel ESG e Histórico)
+  * `createNativeStackNavigator` (Fluxo nativo para Questionário e Tela de Resultados)
+* **Persistência de Dados Offline:** `@react-native-async-storage/async-storage` (diagnósticos e dados institucionais gravados localmente no dispositivo)
+* **Ícones Nativos:** `lucide-react-native` e `react-native-svg`
+
+### 8.2. Telas do Aplicativo Mobile
+* 🏠 **`HomeScreen`**: Identificação da organização avaliada, estatísticas rápidas e apresentação dos 5 pilares com cores temáticas.
+* 📝 **`QuizScreen`**: Questionário interativo com 20 perguntas calibradas (4 por pilar), barra de progresso em tempo real, badges de categoria e seleção tátil de alternativas.
+* 🏆 **`ResultScreen`**: Pontuação geral (0 a 100), classificação do Nível de Maturidade (*Crítico, Em Desenvolvimento, Avançado ou Sustentável*), alerta do **Pilar Crítico** prioritário e recomendações práticas.
+* 📊 **`DashboardScreen`**: Painel com gráficos em barra horizontal do desempenho nos 5 pilares (*Energia, Água, Resíduos, Materiais e Gestão*) e comparativo Destaque vs. Ponto Crítico.
+* 📜 **`HistoryScreen`**: Histórico completo com data/hora, nota final e pilar crítico, permitindo reabrir relatórios passados e gerenciamento de registros offline.
+
+### 8.3. Como Executar o App no Celular com Expo Go
+
+1. **Instalar o Expo Go no smartphone:**
+   * [Google Play (Android)](https://play.google.com/store/apps/details?id=host.exp.exponent) | [App Store (iOS)](https://apps.apple.com/app/expo-go/id982107779)
+2. **Navegar até a pasta mobile e iniciar:**
+   ```bash
+   cd mobile
+   npm install
+   npx expo start
+   ```
+3. **Escanear o QR Code:**
+   * **Android:** Abra o app Expo Go e toque em *Scan QR Code*.
+   * **iOS:** Aponte a câmera padrão para o QR Code gerado no terminal.
+
+### 8.4. Como Gerar o Arquivo Instalador .APK (Android)
+
+Para compilar o pacote `.apk` para entrega acadêmica via EAS Build (nuvem gratuita da Expo):
+
+```bash
+# 1. Instalar o EAS CLI
+npm install -g eas-cli
+
+# 2. Login na conta Expo (grátis em https://expo.dev)
+eas login
+
+# 3. Compilar o APK de demonstração
+eas build -p android --profile preview
+```
+Ao término da compilação, o link direto para download do `.apk` pronto para instalar no Android será exibido no terminal.
+
+---
+
+## 📊 9. Rotas do Sistema Web
 
 * **`/`** — Página inicial e apresentação da proposta.
 * **`/dashboard`** — Visão geral com cards de evolução, último diagnóstico e gráfico Donut interativo.

@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Eco Diagnóstico",
+    "slug": "eco-diagnostico",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/folha.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/folha.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ecodiagnostico.app"
+    },
+    "android": {
+      "package": "com.ecodiagnostico.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/folha.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/folha.png"
+    }
+  }
+}
