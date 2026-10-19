@@ -11,6 +11,7 @@ import ResultScreen from "../screens/ResultScreen";
 
 import { Home, LayoutDashboard, History } from "lucide-react-native";
 
+import { PlatformPressable } from "@react-navigation/elements";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -24,6 +25,12 @@ function HomeTabs() {
       screenOptions={{
         tabBarActiveTintColor: "#16a34a",
         tabBarInactiveTintColor: "#9ca3af",
+        tabBarButton: (props) => (
+          <PlatformPressable
+            {...props}
+            android_ripple={{ color: "transparent" }}
+          />
+        ),
         tabBarStyle: {
           backgroundColor: "#ffffff",
           borderTopColor: "#e5e7eb",

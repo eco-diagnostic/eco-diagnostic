@@ -92,7 +92,7 @@ export default function HomeScreen() {
       {/* HEADER HERO */}
       <View style={styles.heroCard}>
         <Image
-          source={require("../../assets/folha.png")}
+          source={require("../../assets/avatar-github.png")}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -200,8 +200,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   logo: {
-    width: 72,
-    height: 72,
+    width: 84,
+    height: 84,
+    borderRadius: 20,
     marginBottom: 12,
   },
   titleRow: {

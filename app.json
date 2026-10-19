@@ -4,10 +4,10 @@
     "slug": "eco-diagnostico",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/folha.png",
+    "icon": "./assets/avatar-github.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/folha.png",
+      "image": "./assets/avatar-github.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,12 +19,12 @@
       "package": "com.ecodiagnostico.app",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/folha.png"
+        "foregroundImage": "./assets/avatar-github.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/folha.png"
+      "favicon": "./assets/avatar-github.png"
     },
     "extra": {
       "eas": {
