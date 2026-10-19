@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Vibration,
+  Platform,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/types";
 import { allQuestions, PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { calculateDiagnosticResult } from "../services/calc";
@@ -20,10 +23,13 @@ type QuizScreenRouteProp = RouteProp<RootStackParamList, "Quiz">;
 export default function QuizScreen() {
   const route = useRoute<QuizScreenRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
   const institutionName = route.params?.institutionName || "Instituição";
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const isCompletedRef = useRef(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const currentQuestion = allQuestions[currentIndex];
   const totalQuestions = allQuestions.length;
@@ -31,7 +37,40 @@ export default function QuizScreen() {
 
   const selectedScore = answers[currentQuestion.id];
 
+  // Intercepta botão voltar para prevenir perda de progresso
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      if (isCompletedRef.current) {
+        return;
+      }
+      e.preventDefault();
+
+      Alert.alert(
+        "Abandonar Questionário?",
+        "Se você sair agora, as respostas desta avaliação não serão salvas.",
+        [
+          { text: "Continuar Respondendo", style: "cancel" },
+          {
+            text: "Abandonar",
+            style: "destructive",
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  // Garante que o scroll volte ao topo a cada nova pergunta
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [currentIndex]);
+
   const handleSelectOption = (score: number) => {
+    if (Platform.OS !== "web") {
+      Vibration.vibrate(35);
+    }
     setAnswers((prev) => ({
       ...prev,
       [currentQuestion.id]: score,
@@ -71,6 +110,11 @@ export default function QuizScreen() {
       return;
     }
 
+    if (Platform.OS !== "web") {
+      Vibration.vibrate([0, 50, 40, 80]);
+    }
+
+    isCompletedRef.current = true;
     const result = calculateDiagnosticResult(institutionName, answers, allQuestions);
     await StorageService.saveDiagnostic(result);
 
@@ -100,7 +144,11 @@ export default function QuizScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.contentScroll} contentContainerStyle={styles.content}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.contentScroll}
+        contentContainerStyle={styles.content}
+      >
         {/* BADGE DO PILAR */}
         <View style={[styles.pillarBadge, { backgroundColor: `${pillarColor}15` }]}>
           <View style={[styles.pillarDot, { backgroundColor: pillarColor }]} />
@@ -152,7 +200,7 @@ export default function QuizScreen() {
       </ScrollView>
 
       {/* FOOTER COM BOTÕES */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) }]}>
         <TouchableOpacity
           style={[styles.navButton, styles.prevButton, currentIndex === 0 && styles.buttonDisabled]}
           onPress={handlePrevious}

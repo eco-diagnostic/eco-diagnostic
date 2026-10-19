@@ -42,6 +42,17 @@ export const StorageService = {
     }
   },
 
+  async deleteDiagnostic(id: string): Promise<void> {
+    memoryDiagnostics = memoryDiagnostics.filter((d) => d.id !== id);
+    try {
+      const existing = await this.getDiagnostics();
+      const updated = existing.filter((d) => d.id !== id);
+      await AsyncStorage.setItem(DIAGNOSTICS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn("StorageService deleteDiagnostic fallback:", e);
+    }
+  },
+
   async clearDiagnostics(): Promise<void> {
     memoryDiagnostics = [];
     try {

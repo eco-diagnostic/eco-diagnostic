@@ -11,10 +11,14 @@ import ResultScreen from "../screens/ResultScreen";
 
 import { Home, LayoutDashboard, History } from "lucide-react-native";
 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<HomeTabParamList>();
 
 function HomeTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -23,9 +27,9 @@ function HomeTabs() {
         tabBarStyle: {
           backgroundColor: "#ffffff",
           borderTopColor: "#e5e7eb",
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 56 + Math.max(insets.bottom, 6),
+          paddingBottom: Math.max(insets.bottom, 6),
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
           fontSize: 12,

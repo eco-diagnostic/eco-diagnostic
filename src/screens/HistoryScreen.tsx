@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/types";
 import { StorageService } from "../services/storage";
 import { DiagnosticResult } from "../types";
@@ -18,6 +19,7 @@ import { History, Trash2, ChevronRight, Calendar, AlertTriangle } from "lucide-r
 export default function HistoryScreen() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
 
   const [history, setHistory] = useState<DiagnosticResult[]>([]);
 
@@ -50,6 +52,24 @@ export default function HistoryScreen() {
     );
   };
 
+  const handleDeleteOne = (id: string, name: string) => {
+    Alert.alert(
+      "Excluir Avaliação",
+      `Deseja excluir a avaliação da "${name}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            await StorageService.deleteDiagnostic(id);
+            setHistory((prev) => prev.filter((d) => d.id !== id));
+          },
+        },
+      ]
+    );
+  };
+
   const renderItem = ({ item }: { item: DiagnosticResult }) => {
     const dateFormatted = new Date(item.completedAt).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -75,9 +95,18 @@ export default function HistoryScreen() {
         activeOpacity={0.8}
       >
         <View style={styles.cardHeader}>
-          <Text style={styles.cardInstName}>{item.institutionName}</Text>
-          <View style={[styles.scoreBadge, { backgroundColor: `${color}15` }]}>
-            <Text style={[styles.scoreBadgeText, { color }]}>{item.overallScore} pts</Text>
+          <Text style={styles.cardInstName} numberOfLines={1}>{item.institutionName}</Text>
+          <View style={styles.headerRightActions}>
+            <View style={[styles.scoreBadge, { backgroundColor: `${color}15` }]}>
+              <Text style={[styles.scoreBadgeText, { color }]}>{item.overallScore} pts</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.deleteItemBtn}
+              onPress={() => handleDeleteOne(item.id, item.institutionName)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Trash2 size={16} color="#ef4444" />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -126,7 +155,10 @@ export default function HistoryScreen() {
           data={history}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: Math.max(insets.bottom + 20, 30) },
+          ]}
         />
       )}
     </View>
@@ -189,6 +221,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#111827",
     flex: 1,
+    marginRight: 8,
+  },
+  headerRightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  deleteItemBtn: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: "#fef2f2",
   },
   scoreBadge: {
     paddingHorizontal: 10,

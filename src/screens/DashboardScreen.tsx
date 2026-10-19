@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/types";
 import { StorageService } from "../services/storage";
 import { DiagnosticResult, Pillar } from "../types";
@@ -17,6 +18,7 @@ import { LayoutDashboard, TrendingUp, AlertCircle, CheckCircle2, Play } from "lu
 export default function DashboardScreen() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
 
   const [latest, setLatest] = useState<DiagnosticResult | null>(null);
 
@@ -65,7 +67,13 @@ export default function DashboardScreen() {
   });
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: Math.max(insets.bottom + 24, 40) },
+      ]}
+    >
       {/* CARD DO ÚLTIMO DIAGNÓSTICO */}
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>

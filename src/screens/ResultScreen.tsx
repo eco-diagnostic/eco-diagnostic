@@ -5,19 +5,22 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Share,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/types";
 import { PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { Pillar } from "../types";
-import { AlertTriangle, CheckCircle, ArrowRight, Home, Sparkles } from "lucide-react-native";
+import { AlertTriangle, CheckCircle, Home, Sparkles, Share2 } from "lucide-react-native";
 
 type ResultScreenRouteProp = RouteProp<RootStackParamList, "Result">;
 
 export default function ResultScreen() {
   const route = useRoute<ResultScreenRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
   const result = route.params.result;
 
   const getMaturityInfo = () => {
@@ -36,8 +39,38 @@ export default function ResultScreen() {
 
   const mat = getMaturityInfo();
 
+  const handleShare = async () => {
+    try {
+      const dateStr = new Date(result.completedAt).toLocaleDateString("pt-BR");
+      const recsText = result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n");
+      const message = `🌿 *Relatório de Diagnóstico Ecológico ESG*\n` +
+        `🏢 *Organização:* ${result.institutionName}\n` +
+        `📅 *Data:* ${dateStr}\n` +
+        `⭐ *Nota Geral:* ${result.overallScore}/100 — ${mat.label}\n\n` +
+        `⚠️ *Pilar Crítico Prioritário:* ${PILLAR_NAMES[result.criticalPillar]} (${result.pillarScores[result.criticalPillar]} pts)\n\n` +
+        `📊 *Desempenho por Dimensão:*\n` +
+        `• ⚡ Energia: ${result.pillarScores.ENERGIA}/100\n` +
+        `• 💧 Água: ${result.pillarScores.AGUA}/100\n` +
+        `• ♻️ Resíduos: ${result.pillarScores.RESIDUOS}/100\n` +
+        `• 📦 Materiais: ${result.pillarScores.MATERIAIS}/100\n` +
+        `• 🏛️ Governança: ${result.pillarScores.GESTAO}/100\n\n` +
+        `💡 *Ações Recomendadas:*\n${recsText}\n\n` +
+        `_Gerado pelo aplicativo Eco Diagnóstico Mobile._`;
+
+      await Share.share({
+        message,
+        title: `Diagnóstico ESG - ${result.institutionName}`,
+      });
+    } catch (e) {
+      console.warn("Share error:", e);
+    }
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 20, 40) }]}
+    >
       {/* HEADER DO RESULTADO */}
       <View style={styles.scoreCard}>
         <View style={styles.instRow}>
@@ -113,15 +146,26 @@ export default function ResultScreen() {
         ))}
       </View>
 
-      {/* BOTÃO FINAL */}
-      <TouchableOpacity
-        style={styles.doneButton}
-        onPress={() => navigation.navigate("HomeTabs")}
-        activeOpacity={0.8}
-      >
-        <Home size={20} color="#ffffff" />
-        <Text style={styles.doneButtonText}>Voltar à Página Principal</Text>
-      </TouchableOpacity>
+      {/* BOTÕES DE AÇÃO */}
+      <View style={styles.actionButtonsCol}>
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={handleShare}
+          activeOpacity={0.8}
+        >
+          <Share2 size={20} color="#16a34a" />
+          <Text style={styles.shareButtonText}>Compartilhar Diagnóstico</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.doneButton}
+          onPress={() => navigation.navigate("HomeTabs")}
+          activeOpacity={0.8}
+        >
+          <Home size={20} color="#ffffff" />
+          <Text style={styles.doneButtonText}>Voltar à Página Principal</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -292,6 +336,31 @@ const styles = StyleSheet.create({
     color: "#374151",
     lineHeight: 20,
   },
+  actionButtonsCol: {
+    gap: 12,
+    marginTop: 8,
+  },
+  shareButton: {
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+    borderColor: "#16a34a",
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  shareButtonText: {
+    color: "#16a34a",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   doneButton: {
     backgroundColor: "#16a34a",
     borderRadius: 14,
@@ -300,7 +369,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    marginTop: 8,
+    shadowColor: "#16a34a",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   doneButtonText: {
     color: "#ffffff",

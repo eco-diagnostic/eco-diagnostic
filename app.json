@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/folha.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7e07ea62-1eb1-4e65-b38f-018f30b6e54c"
+      }
+    },
+    "owner": "duuhbraga"
   }
 }

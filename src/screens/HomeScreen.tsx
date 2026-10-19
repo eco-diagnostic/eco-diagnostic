@@ -7,9 +7,12 @@ import {
   ScrollView,
   Image,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/types";
 import { StorageService } from "../services/storage";
 import { PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
@@ -19,6 +22,7 @@ import { Zap, Droplets, Trash2, Package, Award, Play } from "lucide-react-native
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
 
   const [institutionName, setInstitutionName] = useState("");
   const [sector, setSector] = useState("");
@@ -73,7 +77,18 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: Math.max(insets.bottom + 24, 40) },
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
       {/* HEADER HERO */}
       <View style={styles.heroCard}>
         <Image
@@ -159,6 +174,7 @@ export default function HomeScreen() {
         Eco Diagnóstico Mobile • Projeto Extensionista Universitário
       </Text>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
