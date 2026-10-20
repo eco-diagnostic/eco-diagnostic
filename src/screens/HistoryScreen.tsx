@@ -12,9 +12,10 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/types";
 import { StorageService } from "../services/storage";
-import { DiagnosticResult } from "../types";
+import { DiagnosticResult, Pillar } from "../types";
 import { PILLAR_NAMES } from "../data/questions";
-import { History, Trash2, ChevronRight, Calendar, AlertTriangle } from "lucide-react-native";
+import { History, Trash2, ChevronRight, Calendar, AlertTriangle, TrendingUp, TrendingDown, Minus, Award, Sparkles } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 
 export default function HistoryScreen() {
   const isFocused = useIsFocused();
@@ -35,6 +36,9 @@ export default function HistoryScreen() {
   }, [isFocused]);
 
   const handleClear = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (e) {}
     Alert.alert(
       "Limpar Histórico",
       "Deseja realmente apagar todos os diagnósticos salvos no dispositivo?",
@@ -44,6 +48,9 @@ export default function HistoryScreen() {
           text: "Limpar",
           style: "destructive",
           onPress: async () => {
+            try {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            } catch (e) {}
             await StorageService.clearDiagnostics();
             setHistory([]);
           },
@@ -53,6 +60,9 @@ export default function HistoryScreen() {
   };
 
   const handleDeleteOne = (id: string, name: string) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (e) {}
     Alert.alert(
       "Excluir Avaliação",
       `Deseja excluir a avaliação da "${name}"?`,
@@ -62,6 +72,9 @@ export default function HistoryScreen() {
           text: "Excluir",
           style: "destructive",
           onPress: async () => {
+            try {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            } catch (e) {}
             await StorageService.deleteDiagnostic(id);
             setHistory((prev) => prev.filter((d) => d.id !== id));
           },
@@ -91,12 +104,23 @@ export default function HistoryScreen() {
     return (
       <TouchableOpacity
         style={styles.historyCard}
-        onPress={() => navigation.navigate("Result", { result: item })}
+        onPress={() => {
+          try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          } catch (e) {}
+          navigation.navigate("Result", { result: item });
+        }}
         activeOpacity={0.8}
       >
         <View style={styles.cardHeader}>
           <Text style={styles.cardInstName} numberOfLines={1}>{item.institutionName}</Text>
           <View style={styles.headerRightActions}>
+            {item.aiConsultancy && (
+              <View style={styles.aiHistoryBadge}>
+                <Sparkles size={11} color="#059669" />
+                <Text style={styles.aiHistoryBadgeText}>IA</Text>
+              </View>
+            )}
             <View style={[styles.scoreBadge, { backgroundColor: `${color}15` }]}>
               <Text style={[styles.scoreBadgeText, { color }]}>{item.overallScore} pts</Text>
             </View>
@@ -130,6 +154,67 @@ export default function HistoryScreen() {
     );
   };
 
+  const renderEvolutionHeader = () => {
+    if (history.length < 2) return null;
+
+    const latest = history[0];
+    const prev = history[1];
+    const scoreDiff = latest.overallScore - prev.overallScore;
+
+    // Encontra pilar de maior ganho
+    let bestGainPillar: Pillar | null = null;
+    let maxGain = -999;
+    (Object.keys(latest.pillarScores) as Pillar[]).forEach((p) => {
+      const diff = (latest.pillarScores[p] ?? 0) - (prev.pillarScores[p] ?? 0);
+      if (diff > maxGain) {
+        maxGain = diff;
+        bestGainPillar = p;
+      }
+    });
+
+    const isPositive = scoreDiff > 0;
+    const isNegative = scoreDiff < 0;
+    const diffColor = isPositive ? "#16a34a" : isNegative ? "#dc2626" : "#64748b";
+    const diffBg = isPositive ? "#f0fdf4" : isNegative ? "#fef2f2" : "#f8fafc";
+    const diffBorder = isPositive ? "#bbf7d0" : isNegative ? "#fecaca" : "#e2e8f0";
+
+    return (
+      <View style={[styles.evolutionCard, { backgroundColor: diffBg, borderColor: diffBorder }]}>
+        <View style={styles.evolutionHeader}>
+          <View style={styles.evolutionTitleRow}>
+            {isPositive ? (
+              <TrendingUp size={18} color="#16a34a" />
+            ) : isNegative ? (
+              <TrendingDown size={18} color="#dc2626" />
+            ) : (
+              <Minus size={18} color="#64748b" />
+            )}
+            <Text style={styles.evolutionTitle}>Evolução Entre Avaliações</Text>
+          </View>
+          <View style={[styles.evolutionBadge, { backgroundColor: diffColor }]}>
+            <Text style={styles.evolutionBadgeText}>
+              {scoreDiff > 0 ? `+${scoreDiff}` : `${scoreDiff}`} pts
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.evolutionDesc}>
+          Comparativo da avaliação mais recente com a anterior (
+          {new Date(prev.completedAt).toLocaleDateString("pt-BR")}).
+        </Text>
+
+        {bestGainPillar && maxGain > 0 && (
+          <View style={styles.evolutionPillarGainRow}>
+            <Award size={14} color="#16a34a" />
+            <Text style={styles.evolutionPillarGainText}>
+              Maior evolução: <Text style={{ fontWeight: "700" }}>{PILLAR_NAMES[bestGainPillar]}</Text> (+{maxGain} pts)
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       {history.length > 0 && (
@@ -155,6 +240,7 @@ export default function HistoryScreen() {
           data={history}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          ListHeaderComponent={renderEvolutionHeader}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: Math.max(insets.bottom + 20, 30) },
@@ -222,6 +308,22 @@ const styles = StyleSheet.create({
     color: "#111827",
     flex: 1,
     marginRight: 8,
+  },
+  aiHistoryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ecfdf5",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    gap: 3,
+  },
+  aiHistoryBadgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#059669",
   },
   headerRightActions: {
     flexDirection: "row",
@@ -296,5 +398,63 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
     lineHeight: 18,
+  },
+  evolutionCard: {
+    borderWidth: 1.5,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  evolutionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  evolutionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  evolutionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#1e293b",
+  },
+  evolutionBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  evolutionBadgeText: {
+    color: "#ffffff",
+    fontWeight: "bold",
+    fontSize: 13,
+  },
+  evolutionDesc: {
+    fontSize: 12,
+    color: "#475569",
+    lineHeight: 17,
+    marginBottom: 8,
+  },
+  evolutionPillarGainRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
+  },
+  evolutionPillarGainText: {
+    fontSize: 12,
+    color: "#166534",
   },
 });

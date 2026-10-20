@@ -4,7 +4,8 @@ import { PILLAR_NAMES } from "../data/questions";
 export function calculateDiagnosticResult(
   institutionName: string,
   answers: Record<string, number>, // questionId -> optionScore
-  questions: Question[]
+  questions: Question[],
+  sector?: string
 ): DiagnosticResult {
   const pillarTotals: Record<Pillar, { weightedScoreSum: number; weightSum: number }> = {
     [Pillar.ENERGIA]: { weightedScoreSum: 0, weightSum: 0 },
@@ -69,6 +70,7 @@ export function calculateDiagnosticResult(
   return {
     id: `diag_${Date.now()}`,
     institutionName: institutionName || "Instituição / Empresa",
+    sector: sector && sector.trim().length > 0 ? sector.trim() : "Geral",
     completedAt: new Date().toISOString(),
     overallScore,
     maturityLevel,

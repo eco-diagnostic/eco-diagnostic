@@ -13,7 +13,9 @@ import { RootStackParamList } from "../navigation/types";
 import { StorageService } from "../services/storage";
 import { DiagnosticResult, Pillar } from "../types";
 import { PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
-import { LayoutDashboard, TrendingUp, AlertCircle, CheckCircle2, Play } from "lucide-react-native";
+import { LayoutDashboard, TrendingUp, AlertCircle, CheckCircle2, Play, PieChart, BarChart2 } from "lucide-react-native";
+import RadarChart from "../components/RadarChart";
+import * as Haptics from "expo-haptics";
 
 export default function DashboardScreen() {
   const isFocused = useIsFocused();
@@ -21,6 +23,15 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
 
   const [latest, setLatest] = useState<DiagnosticResult | null>(null);
+  const [viewMode, setViewMode] = useState<"radar" | "bars">("radar");
+
+  const handleToggleView = (mode: "radar" | "bars") => {
+    try {
+      Haptics.selectionAsync();
+    } catch (e) {}
+    setViewMode(mode);
+  };
+
 
   const loadLatest = async () => {
     const list = await StorageService.getDiagnostics();
@@ -59,12 +70,15 @@ export default function DashboardScreen() {
   // Encontra pilar mais forte e mais fraco
   let bestPillar: Pillar = Pillar.ENERGIA;
   let bestScore = -1;
-  (Object.keys(latest.pillarScores) as Pillar[]).forEach((p) => {
-    if (latest.pillarScores[p] > bestScore) {
-      bestScore = latest.pillarScores[p];
-      bestPillar = p;
-    }
-  });
+  if (latest.pillarScores) {
+    (Object.keys(latest.pillarScores) as Pillar[]).forEach((p) => {
+      const score = latest.pillarScores[p] ?? 0;
+      if (score > bestScore) {
+        bestScore = score;
+        bestPillar = p;
+      }
+    });
+  }
 
   return (
     <ScrollView
@@ -94,7 +108,7 @@ export default function DashboardScreen() {
             <CheckCircle2 size={18} color="#16a34a" />
             <Text style={styles.miniCardLabel}>Maior Destaque</Text>
             <Text style={[styles.miniCardValue, { color: "#15803d" }]}>
-              {PILLAR_NAMES[bestPillar]} ({bestScore} pts)
+              {PILLAR_NAMES[bestPillar] || "Não avaliado"} ({bestScore >= 0 ? bestScore : 0} pts)
             </Text>
           </View>
 
@@ -102,35 +116,80 @@ export default function DashboardScreen() {
             <AlertCircle size={18} color="#dc2626" />
             <Text style={styles.miniCardLabel}>Ponto Crítico</Text>
             <Text style={[styles.miniCardValue, { color: "#b91c1c" }]}>
-              {PILLAR_NAMES[latest.criticalPillar]} ({latest.pillarScores[latest.criticalPillar]} pts)
+              {PILLAR_NAMES[latest.criticalPillar] || "Não avaliado"} ({latest.pillarScores?.[latest.criticalPillar] ?? 0} pts)
             </Text>
           </View>
         </View>
       </View>
 
-      {/* DETALHAMENTO DE BARRAS POR PILAR */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Desempenho nos 5 Pilares ESG</Text>
-        <Text style={styles.cardSub}>
-          Média consolidada de conformidade e maturidade ecológica:
-        </Text>
+      {/* SELETOR DE MODO DE VISUALIZAÇÃO */}
+      <View style={styles.viewToggleContainer}>
+        <TouchableOpacity
+          style={[
+            styles.toggleBtn,
+            viewMode === "radar" && styles.toggleBtnActive,
+          ]}
+          onPress={() => handleToggleView("radar")}
+          activeOpacity={0.8}
+        >
+          <PieChart size={16} color={viewMode === "radar" ? "#16a34a" : "#64748b"} />
+          <Text
+            style={[
+              styles.toggleBtnText,
+              viewMode === "radar" && styles.toggleBtnTextActive,
+            ]}
+          >
+            Gráfico Teia / Radar
+          </Text>
+        </TouchableOpacity>
 
-        {(Object.keys(latest.pillarScores) as Pillar[]).map((p) => {
-          const score = latest.pillarScores[p];
-          const color = PILLAR_COLORS[p];
-          return (
-            <View key={p} style={styles.barItem}>
-              <View style={styles.barHeader}>
-                <Text style={styles.barLabel}>{PILLAR_NAMES[p]}</Text>
-                <Text style={[styles.barScore, { color }]}>{score}%</Text>
-              </View>
-              <View style={styles.barTrack}>
-                <View style={[styles.barFill, { width: `${score}%`, backgroundColor: color }]} />
-              </View>
-            </View>
-          );
-        })}
+        <TouchableOpacity
+          style={[
+            styles.toggleBtn,
+            viewMode === "bars" && styles.toggleBtnActive,
+          ]}
+          onPress={() => handleToggleView("bars")}
+          activeOpacity={0.8}
+        >
+          <BarChart2 size={16} color={viewMode === "bars" ? "#16a34a" : "#64748b"} />
+          <Text
+            style={[
+              styles.toggleBtnText,
+              viewMode === "bars" && styles.toggleBtnTextActive,
+            ]}
+          >
+            Barras por Dimensão
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* CONTEÚDO VISUAL DINÂMICO */}
+      {viewMode === "radar" ? (
+        <RadarChart pillarScores={latest.pillarScores} />
+      ) : (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Desempenho nos 5 Pilares ESG</Text>
+          <Text style={styles.cardSub}>
+            Média consolidada de conformidade e maturidade ecológica:
+          </Text>
+
+          {(Object.keys(latest.pillarScores || {}) as Pillar[]).map((p) => {
+            const score = latest.pillarScores?.[p] ?? 0;
+            const color = PILLAR_COLORS[p] || "#16a34a";
+            return (
+              <View key={p} style={styles.barItem}>
+                <View style={styles.barHeader}>
+                  <Text style={styles.barLabel}>{PILLAR_NAMES[p]}</Text>
+                  <Text style={[styles.barScore, { color }]}>{score}%</Text>
+                </View>
+                <View style={styles.barTrack}>
+                  <View style={[styles.barFill, { width: `${score}%`, backgroundColor: color }]} />
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      )}
 
       {/* BOTÃO PARA REFAZER / NOVO DIAGNÓSTICO */}
       <TouchableOpacity
@@ -318,4 +377,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  viewToggleContainer: {
+    flexDirection: "row",
+    backgroundColor: "#e2e8f0",
+    padding: 4,
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 4,
+  },
+  toggleBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 9,
+    gap: 6,
+  },
+  toggleBtnActive: {
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  toggleBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  toggleBtnTextActive: {
+    color: "#16a34a",
+    fontWeight: "700",
+  },
 });
+

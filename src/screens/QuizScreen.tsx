@@ -16,7 +16,32 @@ import { RootStackParamList } from "../navigation/types";
 import { allQuestions, PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { calculateDiagnosticResult } from "../services/calc";
 import { StorageService } from "../services/storage";
-import { ArrowLeft, ArrowRight, CheckCircle2, Circle } from "lucide-react-native";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import { Pillar } from "../types";
+
+const PILLAR_THEMES: Record<Pillar, { border: string; bg: string }> = {
+  [Pillar.ENERGIA]: {
+    border: "#d97706", // Amber nítido e elegante
+    bg: "#fffbeb",     // Fundo pastel sólido
+  },
+  [Pillar.AGUA]: {
+    border: "#0284c7", // Sky blue
+    bg: "#f0f9ff",
+  },
+  [Pillar.RESIDUOS]: {
+    border: "#16a34a", // Verde esmeralda
+    bg: "#f0fdf4",
+  },
+  [Pillar.MATERIAIS]: {
+    border: "#ea580c", // Laranja queimado
+    bg: "#fff7ed",
+  },
+  [Pillar.GESTAO]: {
+    border: "#7c3aed", // Roxo elegante
+    bg: "#faf5ff",
+  },
+};
 
 type QuizScreenRouteProp = RouteProp<RootStackParamList, "Quiz">;
 
@@ -25,6 +50,7 @@ export default function QuizScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
   const institutionName = route.params?.institutionName || "Instituição";
+  const sector = route.params?.sector || "Geral";
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -37,7 +63,42 @@ export default function QuizScreen() {
 
   const selectedScore = answers[currentQuestion.id];
 
-  // Intercepta botão voltar para prevenir perda de progresso
+  // Recupera rascunho anterior se existir
+  useEffect(() => {
+    const checkDraft = async () => {
+      const draft = await StorageService.getQuizDraft();
+      if (draft && Object.keys(draft.answers).length > 0) {
+        if (route.params?.resumeDraft) {
+          setAnswers(draft.answers);
+          setCurrentIndex(Math.min(draft.currentIndex, totalQuestions - 1));
+        } else {
+          Alert.alert(
+            "Continuar Rascunho?",
+            `Encontramos uma avaliação em andamento com ${Object.keys(draft.answers).length} resposta(s) para "${draft.institutionName}". Deseja continuar?`,
+            [
+              {
+                text: "Começar do Zero",
+                style: "destructive",
+                onPress: async () => {
+                  await StorageService.clearQuizDraft();
+                },
+              },
+              {
+                text: "Sim, Continuar",
+                onPress: () => {
+                  setAnswers(draft.answers);
+                  setCurrentIndex(Math.min(draft.currentIndex, totalQuestions - 1));
+                },
+              },
+            ]
+          );
+        }
+      }
+    };
+    checkDraft();
+  }, []);
+
+  // Intercepta botão voltar com opção de salvar rascunho ou descartar
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       if (isCompletedRef.current) {
@@ -46,21 +107,38 @@ export default function QuizScreen() {
       e.preventDefault();
 
       Alert.alert(
-        "Abandonar Questionário?",
-        "Se você sair agora, as respostas desta avaliação não serão salvas.",
+        "Pausar Questionário",
+        "Você pode salvar seu progresso para continuar mais tarde ou descartar as respostas.",
         [
           { text: "Continuar Respondendo", style: "cancel" },
           {
-            text: "Abandonar",
+            text: "Descartar",
             style: "destructive",
-            onPress: () => navigation.dispatch(e.data.action),
+            onPress: async () => {
+              await StorageService.clearQuizDraft();
+              isCompletedRef.current = true;
+              navigation.dispatch(e.data.action);
+            },
+          },
+          {
+            text: "Salvar e Sair",
+            onPress: async () => {
+              await StorageService.saveQuizDraft({
+                institutionName,
+                currentIndex,
+                answers,
+                updatedAt: new Date().toISOString(),
+              });
+              isCompletedRef.current = true;
+              navigation.dispatch(e.data.action);
+            },
           },
         ]
       );
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, currentIndex, answers, institutionName]);
 
   // Garante que o scroll volte ao topo a cada nova pergunta
   useEffect(() => {
@@ -68,17 +146,31 @@ export default function QuizScreen() {
   }, [currentIndex]);
 
   const handleSelectOption = (score: number) => {
-    if (Platform.OS !== "web") {
-      Vibration.vibrate(35);
+    try {
+      Haptics.selectionAsync();
+    } catch (e) {
+      if (Platform.OS !== "web") {
+        Vibration.vibrate(35);
+      }
     }
-    setAnswers((prev) => ({
-      ...prev,
+    const updated = {
+      ...answers,
       [currentQuestion.id]: score,
-    }));
+    };
+    setAnswers(updated);
+    StorageService.saveQuizDraft({
+      institutionName,
+      currentIndex,
+      answers: updated,
+      updatedAt: new Date().toISOString(),
+    });
   };
 
   const handleNext = () => {
     if (selectedScore === undefined) {
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      } catch (e) {}
       Alert.alert(
         "Selecione uma alternativa",
         "Por favor, escolha uma das opções antes de prosseguir."
@@ -86,8 +178,19 @@ export default function QuizScreen() {
       return;
     }
 
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (e) {}
+
     if (currentIndex < totalQuestions - 1) {
-      setCurrentIndex((prev) => prev + 1);
+      const nextIdx = currentIndex + 1;
+      setCurrentIndex(nextIdx);
+      StorageService.saveQuizDraft({
+        institutionName,
+        currentIndex: nextIdx,
+        answers,
+        updatedAt: new Date().toISOString(),
+      });
     } else {
       finishQuiz();
     }
@@ -95,7 +198,17 @@ export default function QuizScreen() {
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {}
+      const prevIdx = currentIndex - 1;
+      setCurrentIndex(prevIdx);
+      StorageService.saveQuizDraft({
+        institutionName,
+        currentIndex: prevIdx,
+        answers,
+        updatedAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -103,6 +216,9 @@ export default function QuizScreen() {
     // Verifica se todas foram respondidas
     const unanswered = allQuestions.filter((q) => answers[q.id] === undefined);
     if (unanswered.length > 0) {
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      } catch (e) {}
       Alert.alert(
         "Questionário Incompleto",
         `Faltam ${unanswered.length} questão(ões) a responder.`
@@ -110,18 +226,28 @@ export default function QuizScreen() {
       return;
     }
 
-    if (Platform.OS !== "web") {
-      Vibration.vibrate([0, 50, 40, 80]);
+    try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (e) {
+      if (Platform.OS !== "web") {
+        Vibration.vibrate([0, 50, 40, 80]);
+      }
     }
 
     isCompletedRef.current = true;
-    const result = calculateDiagnosticResult(institutionName, answers, allQuestions);
+    const result = calculateDiagnosticResult(institutionName, answers, allQuestions, sector);
     await StorageService.saveDiagnostic(result);
+    await StorageService.clearQuizDraft();
 
     navigation.replace("Result", { result });
   };
 
   const pillarColor = PILLAR_COLORS[currentQuestion.pillar];
+  const currentTheme = PILLAR_THEMES[currentQuestion.pillar] || {
+    border: "#16a34a",
+    bg: "#f0fdf4",
+  };
+  const optionLetters = ["A", "B", "C", "D"];
 
   return (
     <View style={styles.container}>
@@ -138,7 +264,7 @@ export default function QuizScreen() {
           <View
             style={[
               styles.progressBarFill,
-              { width: `${progressPercent}%`, backgroundColor: pillarColor },
+              { width: `${progressPercent}%`, backgroundColor: currentTheme.border },
             ]}
           />
         </View>
@@ -150,9 +276,9 @@ export default function QuizScreen() {
         contentContainerStyle={styles.content}
       >
         {/* BADGE DO PILAR */}
-        <View style={[styles.pillarBadge, { backgroundColor: `${pillarColor}15` }]}>
-          <View style={[styles.pillarDot, { backgroundColor: pillarColor }]} />
-          <Text style={[styles.pillarBadgeText, { color: pillarColor }]}>
+        <View style={[styles.pillarBadge, { backgroundColor: currentTheme.bg, borderColor: currentTheme.border, borderWidth: 1 }]}>
+          <View style={[styles.pillarDot, { backgroundColor: currentTheme.border }]} />
+          <Text style={[styles.pillarBadgeText, { color: currentTheme.border }]}>
             {PILLAR_NAMES[currentQuestion.pillar]}
           </Text>
         </View>
@@ -165,34 +291,65 @@ export default function QuizScreen() {
 
         {/* ALTERNATIVAS */}
         <View style={styles.optionsList}>
-          {currentQuestion.options.map((opt) => {
+          {currentQuestion.options.map((opt, optIdx) => {
             const isSelected = selectedScore === opt.score;
+            const letter = optionLetters[optIdx] || `${optIdx + 1}`;
+
             return (
               <TouchableOpacity
                 key={opt.id}
                 style={[
                   styles.optionCard,
-                  isSelected && styles.optionCardSelected,
-                  isSelected && { borderColor: pillarColor },
+                  isSelected && {
+                    borderColor: currentTheme.border,
+                    backgroundColor: currentTheme.bg,
+                  },
                 ]}
                 onPress={() => handleSelectOption(opt.score)}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <View style={styles.radioWrapper}>
+                <View style={styles.optionContentRow}>
+                  <View
+                    style={[
+                      styles.letterBadge,
+                      isSelected && {
+                        backgroundColor: currentTheme.border,
+                        borderColor: currentTheme.border,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.letterText,
+                        isSelected && styles.letterTextSelected,
+                      ]}
+                    >
+                      {letter}
+                    </Text>
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.optionText,
+                      isSelected && styles.optionTextSelected,
+                    ]}
+                  >
+                    {opt.text}
+                  </Text>
+
                   {isSelected ? (
-                    <CheckCircle2 size={22} color={pillarColor} />
+                    <View
+                      style={[
+                        styles.checkCircleSelected,
+                        { backgroundColor: currentTheme.border },
+                      ]}
+                    >
+                      <Check size={13} color="#ffffff" strokeWidth={3} />
+                    </View>
                   ) : (
-                    <Circle size={22} color="#d1d5db" />
+                    <View style={styles.checkCircleUnselected} />
                   )}
                 </View>
-                <Text
-                  style={[
-                    styles.optionText,
-                    isSelected && styles.optionTextSelected,
-                  ]}
-                >
-                  {opt.text}
-                </Text>
               </TouchableOpacity>
             );
           })}
@@ -217,7 +374,7 @@ export default function QuizScreen() {
           style={[
             styles.navButton,
             styles.nextButton,
-            { backgroundColor: pillarColor },
+            { backgroundColor: currentTheme.border },
           ]}
           onPress={handleNext}
           activeOpacity={0.8}
@@ -317,34 +474,59 @@ const styles = StyleSheet.create({
   optionCard: {
     backgroundColor: "#ffffff",
     borderWidth: 2,
-    borderColor: "#e5e7eb",
+    borderColor: "#e2e8f0",
     borderRadius: 16,
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  letterBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  letterText: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  letterTextSelected: {
+    color: "#ffffff",
+    fontWeight: "800",
+  },
+  optionContentRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
   },
-  optionCardSelected: {
+  checkCircleSelected: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkCircleUnselected: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: "#cbd5e1",
     backgroundColor: "#ffffff",
-    shadowOpacity: 0.1,
-    elevation: 3,
-  },
-  radioWrapper: {
-    marginTop: 2,
   },
   optionText: {
     flex: 1,
-    fontSize: 15,
-    color: "#374151",
-    lineHeight: 22,
+    fontSize: 14.5,
+    color: "#334155",
+    lineHeight: 21,
+    fontWeight: "500",
   },
   optionTextSelected: {
-    color: "#111827",
+    color: "#0f172a",
     fontWeight: "600",
   },
   footer: {

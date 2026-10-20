@@ -2,7 +2,7 @@ import { DiagnosticResult } from "../types";
 
 export type RootStackParamList = {
   HomeTabs: undefined;
-  Quiz: { institutionName: string };
+  Quiz: { institutionName: string; sector?: string; resumeDraft?: boolean };
   Result: { result: DiagnosticResult };
 };
 

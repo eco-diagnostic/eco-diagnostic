@@ -3,6 +3,7 @@ import { DiagnosticResult } from "../types";
 
 const DIAGNOSTICS_KEY = "@eco_diagnostic_history";
 const INSTITUTION_KEY = "@eco_institution_info";
+const QUIZ_DRAFT_KEY = "@eco_quiz_draft";
 
 export interface InstitutionInfo {
   name: string;
@@ -11,9 +12,17 @@ export interface InstitutionInfo {
   state: string;
 }
 
+export interface QuizDraft {
+  institutionName: string;
+  currentIndex: number;
+  answers: Record<string, number>;
+  updatedAt: string;
+}
+
 // In-memory fallback para garantir que o app nunca trave caso haja qualquer problema de I/O
 let memoryDiagnostics: DiagnosticResult[] = [];
 let memoryInstitution: InstitutionInfo | null = null;
+let memoryDraft: QuizDraft | null = null;
 
 export const StorageService = {
   async getDiagnostics(): Promise<DiagnosticResult[]> {
@@ -83,6 +92,39 @@ export const StorageService = {
       await AsyncStorage.setItem(INSTITUTION_KEY, JSON.stringify(info));
     } catch (e) {
       console.warn("StorageService saveInstitution fallback:", e);
+    }
+  },
+
+  async getQuizDraft(): Promise<QuizDraft | null> {
+    try {
+      const json = await AsyncStorage.getItem(QUIZ_DRAFT_KEY);
+      if (json) {
+        const parsed = JSON.parse(json);
+        memoryDraft = parsed;
+        return parsed;
+      }
+      return memoryDraft;
+    } catch (e) {
+      console.warn("StorageService getQuizDraft fallback:", e);
+      return memoryDraft;
+    }
+  },
+
+  async saveQuizDraft(draft: QuizDraft): Promise<void> {
+    memoryDraft = draft;
+    try {
+      await AsyncStorage.setItem(QUIZ_DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) {
+      console.warn("StorageService saveQuizDraft fallback:", e);
+    }
+  },
+
+  async clearQuizDraft(): Promise<void> {
+    memoryDraft = null;
+    try {
+      await AsyncStorage.removeItem(QUIZ_DRAFT_KEY);
+    } catch (e) {
+      console.warn("StorageService clearQuizDraft fallback:", e);
     }
   },
 };
