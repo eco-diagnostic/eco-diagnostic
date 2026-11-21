@@ -10,10 +10,9 @@ import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from "expo-aud
  * - A preferência de mudo fica salva no aparelho (AsyncStorage).
  */
 
-type SoundName = "tap" | "next" | "success" | "warn";
+type SoundName = "next" | "success" | "warn";
 
 const SOUND_FILES: Record<SoundName, number> = {
-  tap: require("../../assets/sounds/tap.wav"),
   next: require("../../assets/sounds/next.wav"),
   success: require("../../assets/sounds/success.wav"),
   warn: require("../../assets/sounds/warn.wav"),
@@ -73,10 +72,9 @@ function haptic(run: () => Promise<void>) {
 }
 
 export const feedback = {
-  /** Escolher uma alternativa */
+  /** Escolher uma alternativa: só vibração, sem som */
   select() {
     haptic(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
-    playSound("tap");
   },
   /** Avançar ou voltar de pergunta */
   next() {
@@ -108,7 +106,7 @@ async function setMuted(next: boolean) {
   } catch (e) {
     console.warn("Não foi possível salvar a preferência de som:", e);
   }
-  if (!next) playSound("tap"); // confirma que o som voltou
+  if (!next) playSound("next"); // confirma que o som voltou
 }
 
 /** Hook do botão de mudo: estado atual + alternar. */
