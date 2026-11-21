@@ -16,6 +16,27 @@ O **Eco Diagnóstico Mobile** é um aplicativo nativo projetado para avaliar o n
 
 ---
 
+## 📸 Telas do Aplicativo
+
+Capturas reais do app rodando no Expo Go, em um celular Android:
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/01-inicio.jpg" width="200" alt="Tela inicial"/><br/><sub><b>Início</b><br/>organização e setor</sub></td>
+    <td align="center"><img src="docs/screenshots/02-questionario.jpg" width="200" alt="Questionário"/><br/><sub><b>Questionário</b><br/>20 perguntas, rascunho automático</sub></td>
+    <td align="center"><img src="docs/screenshots/03-resultado.jpg" width="200" alt="Resultado"/><br/><sub><b>Resultado</b><br/>nota, nível e pilar crítico</sub></td>
+    <td align="center"><img src="docs/screenshots/04-plano-ia.jpg" width="200" alt="Consultoria com IA"/><br/><sub><b>Consultoria com IA</b><br/>plano de ação por setor</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/05-relatorio-pdf.jpg" width="200" alt="Exportação do relatório"/><br/><sub><b>Relatório PDF</b><br/>compartilhar ou imprimir</sub></td>
+    <td align="center"><img src="docs/screenshots/06-painel.jpg" width="200" alt="Painel ESG"/><br/><sub><b>Painel ESG</b><br/>barras e radar por pilar</sub></td>
+    <td align="center"><img src="docs/screenshots/07-historico.jpg" width="200" alt="Histórico"/><br/><sub><b>Histórico</b><br/>evolução entre avaliações</sub></td>
+    <td></td>
+  </tr>
+</table>
+
+---
+
 ## 🏗️ Funcionalidades e Arquitetura
 
 * **Framework Base:** [React Native](https://reactnative.dev/) com [Expo](https://expo.dev/) (SDK 58)
@@ -32,7 +53,7 @@ O **Eco Diagnóstico Mobile** é um aplicativo nativo projetado para avaliar o n
 * **Exportação & Compartilhamento:**
   * Geração de relatório formal em **PDF** executivo com layout A4 (`expo-print`).
   * Compartilhamento direto via WhatsApp, E-mail e redes com a `Share API` nativa e `expo-sharing`.
-* **Experiência Nativa:** Safe Area Insets, feedback tátil (`expo-haptics`) e proteção de saída acidental no questionário via `BackHandler`.
+* **Experiência Nativa:** Safe Area Insets, feedback tátil (`expo-haptics`), efeitos sonoros curtos (`expo-audio`, com botão de mudo no cabeçalho que respeita o modo silencioso) e proteção de saída acidental no questionário (`usePreventRemove`).
 * **Cálculo de Maturidade:**
   * **0 a 39 pts:** Nível Crítico
   * **40 a 69 pts:** Em Desenvolvimento
