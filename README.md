@@ -18,12 +18,14 @@ O **Eco Diagnóstico Mobile** é um aplicativo nativo projetado para avaliar o n
 
 ## 🏗️ Funcionalidades e Arquitetura
 
-* **Framework Base:** [React Native](https://reactnative.dev/) com [Expo](https://expo.dev/) (SDK 52+)
+* **Framework Base:** [React Native](https://reactnative.dev/) com [Expo](https://expo.dev/) (SDK 58)
 * **Linguagem:** TypeScript
 * **Identidade Visual:** Ícone do app, splash screen e identidade da organização [eco-diagnostic](https://github.com/eco-diagnostic).
-* **Navegação Mobile:** [React Navigation](https://reactnavigation.org/)
-  * `createBottomTabNavigator` (Abas: Início, Painel ESG, Histórico)
-  * `createNativeStackNavigator` (Fluxo do Questionário e Resultado)
+* **Navegação Mobile:** [Expo Router](https://docs.expo.dev/router/introduction/) (rotas baseadas em arquivos na pasta `app/`)
+  * `app/(tabs)/` → abas inferiores: Início (`/`), Painel ESG (`/dashboard`) e Histórico (`/history`)
+  * `app/quiz.tsx` → questionário (`/quiz`, recebe organização e setor por parâmetros de rota)
+  * `app/result.tsx` → resultado (`/result?id=<id>`, carrega o diagnóstico salvo pelo id)
+  * `usePreventRemove` protege a saída do questionário (salvar rascunho ou descartar)
 * **Persistência de Dados (Offline):** `@react-native-async-storage/async-storage` com salvamento automático de rascunho de questionário (`Draft`).
 * **Visualização Gráfica:** Gráfico de Radar SVG interativo (`RadarChart`) e gráficos de barras por pilar.
 * **Inteligência Artificial (Consultoria ESG):** Integração para diagnóstico executivo, geração de matriz de impacto x esforço e plano de ação setorial.
@@ -47,7 +49,19 @@ O **Eco Diagnóstico Mobile** é um aplicativo nativo projetado para avaliar o n
   * [Download no Google Play (Android)](https://play.google.com/store/apps/details?id=host.exp.exponent)
   * [Download na App Store (iOS)](https://apps.apple.com/app/expo-go/id982107779)
 
-### 2. Iniciar o Servidor de Desenvolvimento
+### 2. Configurar a Chave da IA (Google Gemini)
+A consultoria com IA usa a API do Google Gemini. Sem a chave, o restante do app funciona normalmente, mas o botão de IA exibe "Chave de API do Gemini não configurada".
+
+1. Gere uma chave gratuita no [Google AI Studio](https://aistudio.google.com/apikey).
+2. Copie o arquivo `.env.example` para `.env` (na raiz do projeto) e preencha:
+   ```
+   EXPO_PUBLIC_GEMINI_API_KEY=sua_chave_aqui
+   ```
+3. Se o servidor já estiver rodando, reinicie com o cache limpo: `npx expo start --clear`.
+
+> O `.env` está no `.gitignore` e não vai para o GitHub nem para o build do EAS. Para gerar o APK com a IA funcionando, cadastre a mesma variável em **expo.dev → projeto → Environment variables** (ambiente *preview*).
+
+### 3. Iniciar o Servidor de Desenvolvimento
 Na raiz do projeto:
 
 ```bash
@@ -58,8 +72,11 @@ npx expo start
 > ```bash
 > npx expo start --tunnel
 > ```
+> No SDK 58 o túnel padrão exige login no Expo (`npx expo login`). Sem conta, use o túnel alternativo: `npx expo start --tunnel ngrok`.
+>
+> **Versão do Expo Go:** o aplicativo Expo Go precisa ser da mesma versão do SDK do projeto (SDK 58). Se aparecer "Project is incompatible with this version of Expo Go", atualize o Expo Go.
 
-### 3. Abrir no Celular
+### 4. Abrir no Celular
 * **Android:** Abra o aplicativo **Expo Go** e toque em **"Scan QR Code"** para apontar a câmera para o QR Code no terminal.
 * **iPhone:** Abra a câmera nativa do iOS, aponte para o QR Code e toque no banner do Expo.
 
@@ -95,6 +112,11 @@ npx expo run:android
 
 ```
 .
+├── app/                    # Rotas (Expo Router): cada arquivo é uma tela
+│   ├── _layout.tsx         # Pilha raiz de navegação
+│   ├── (tabs)/             # Abas inferiores: index, dashboard, history
+│   ├── quiz.tsx            # Rota do questionário
+│   └── result.tsx          # Rota do resultado
 ├── assets/                 # Ícone oficial, splash screen e imagens
 ├── src/
 │   ├── assets/             # Assets embutidos para relatórios
@@ -102,10 +124,7 @@ npx expo run:android
 │   ├── config/             # Configurações de serviços e IA
 │   ├── data/
 │   │   └── questions.ts    # 20 perguntas calibradas dos 5 pilares
-│   ├── navigation/
-│   │   ├── AppNavigator.tsx# Configuração das Tabs e Stack
-│   │   └── types.ts        # Tipagem das rotas
-│   ├── screens/
+│   ├── screens/            # Telas (as rotas em app/ apenas as exportam)
 │   │   ├── HomeScreen.tsx      # Início, identificação e seleção de setor
 │   │   ├── QuizScreen.tsx      # Questionário com rascunho automático
 │   │   ├── ResultScreen.tsx    # Resultado, Radar, Consultoria IA e Exportação PDF
@@ -118,7 +137,6 @@ npx expo run:android
 │   │   └── storage.ts      # Armazenamento e rascunhos no AsyncStorage
 │   └── types/
 │       └── index.ts        # Interfaces e modelos de dados TypeScript
-├── App.tsx                 # Ponto de entrada com Providers
 ├── app.json                # Configurações do Expo e pacote Android
 ├── eas.json                # Perfil de geração de APK Android
 └── package.json            # Dependências React Native

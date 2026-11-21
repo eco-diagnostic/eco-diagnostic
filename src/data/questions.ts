@@ -1,7 +1,7 @@
 import { Pillar, Question } from "../types";
 
 export const allQuestions: Question[] = [
-  // 1. ENERGIA (7 Perguntas)
+  // 1. ENERGIA (4 Perguntas)
   {
     id: "en_1",
     pillar: Pillar.ENERGIA,

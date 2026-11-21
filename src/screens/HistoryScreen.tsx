@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,8 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RootStackParamList } from "../navigation/types";
 import { StorageService } from "../services/storage";
 import { DiagnosticResult, Pillar } from "../types";
 import { PILLAR_NAMES } from "../data/questions";
@@ -18,8 +16,7 @@ import { History, Trash2, ChevronRight, Calendar, AlertTriangle, TrendingUp, Tre
 import * as Haptics from "expo-haptics";
 
 export default function HistoryScreen() {
-  const isFocused = useIsFocused();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [history, setHistory] = useState<DiagnosticResult[]>([]);
@@ -29,11 +26,12 @@ export default function HistoryScreen() {
     setHistory(list);
   };
 
-  useEffect(() => {
-    if (isFocused) {
+  // Recarrega a lista sempre que a aba Histórico ganha foco
+  useFocusEffect(
+    useCallback(() => {
       loadHistory();
-    }
-  }, [isFocused]);
+    }, [])
+  );
 
   const handleClear = () => {
     try {
@@ -108,7 +106,7 @@ export default function HistoryScreen() {
           try {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           } catch (e) {}
-          navigation.navigate("Result", { result: item });
+          router.push({ pathname: "/result", params: { id: item.id } });
         }}
         activeOpacity={0.8}
       >

@@ -5,17 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ScrollViewInstance,
   Alert,
   Vibration,
   Platform,
 } from "react-native";
-import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useLocalSearchParams, usePreventRemove, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RootStackParamList } from "../navigation/types";
 import { allQuestions, PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { calculateDiagnosticResult } from "../services/calc";
-import { StorageService } from "../services/storage";
+import { StorageService, QuizDraft } from "../services/storage";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Pillar } from "../types";
@@ -43,19 +42,23 @@ const PILLAR_THEMES: Record<Pillar, { border: string; bg: string }> = {
   },
 };
 
-type QuizScreenRouteProp = RouteProp<RootStackParamList, "Quiz">;
-
 export default function QuizScreen() {
-  const route = useRoute<QuizScreenRouteProp>();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  // Parâmetros da rota /quiz (o Expo Router entrega tudo como texto)
+  const params = useLocalSearchParams<{
+    institutionName?: string;
+    sector?: string;
+    resumeDraft?: string;
+  }>();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const institutionName = route.params?.institutionName || "Instituição";
-  const sector = route.params?.sector || "Geral";
+  // Em estado (e não só nos params): ao retomar um rascunho, a avaliação passa a ser a da organização do rascunho
+  const [institutionName, setInstitutionName] = useState(params.institutionName || "Instituição");
+  const [sector, setSector] = useState(params.sector || "Geral");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  const isCompletedRef = useRef(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   const currentQuestion = allQuestions[currentIndex];
   const totalQuestions = allQuestions.length;
@@ -63,14 +66,29 @@ export default function QuizScreen() {
 
   const selectedScore = answers[currentQuestion.id];
 
+  const saveDraft = (index: number, draftAnswers: Record<string, number>) =>
+    StorageService.saveQuizDraft({
+      institutionName,
+      sector,
+      currentIndex: index,
+      answers: draftAnswers,
+      updatedAt: new Date().toISOString(),
+    });
+
   // Recupera rascunho anterior se existir
   useEffect(() => {
+    const restoreDraft = (draft: QuizDraft) => {
+      setAnswers(draft.answers);
+      setCurrentIndex(Math.min(draft.currentIndex, totalQuestions - 1));
+      setInstitutionName(draft.institutionName);
+      if (draft.sector) setSector(draft.sector);
+    };
+
     const checkDraft = async () => {
       const draft = await StorageService.getQuizDraft();
       if (draft && Object.keys(draft.answers).length > 0) {
-        if (route.params?.resumeDraft) {
-          setAnswers(draft.answers);
-          setCurrentIndex(Math.min(draft.currentIndex, totalQuestions - 1));
+        if (params.resumeDraft === "1") {
+          restoreDraft(draft);
         } else {
           Alert.alert(
             "Continuar Rascunho?",
@@ -85,10 +103,7 @@ export default function QuizScreen() {
               },
               {
                 text: "Sim, Continuar",
-                onPress: () => {
-                  setAnswers(draft.answers);
-                  setCurrentIndex(Math.min(draft.currentIndex, totalQuestions - 1));
-                },
+                onPress: () => restoreDraft(draft),
               },
             ]
           );
@@ -98,47 +113,37 @@ export default function QuizScreen() {
     checkDraft();
   }, []);
 
-  // Intercepta botão voltar com opção de salvar rascunho ou descartar
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      if (isCompletedRef.current) {
-        return;
-      }
-      e.preventDefault();
-
-      Alert.alert(
-        "Pausar Questionário",
-        "Você pode salvar seu progresso para continuar mais tarde ou descartar as respostas.",
-        [
-          { text: "Continuar Respondendo", style: "cancel" },
-          {
-            text: "Descartar",
-            style: "destructive",
-            onPress: async () => {
-              await StorageService.clearQuizDraft();
-              isCompletedRef.current = true;
-              navigation.dispatch(e.data.action);
-            },
+  // Intercepta o botão voltar (gesto, botão do sistema ou seta do cabeçalho) com opção de
+  // salvar o rascunho ou descartar. Sem nenhuma resposta não há progresso a salvar: sai direto.
+  const hasProgress = Object.keys(answers).length > 0;
+  const disablePrevention = usePreventRemove(hasProgress && !isCompleted, ({ repeat }) => {
+    Alert.alert(
+      "Pausar Questionário",
+      "Você pode salvar seu progresso para continuar mais tarde ou descartar as respostas.",
+      [
+        { text: "Continuar Respondendo", style: "cancel" },
+        {
+          text: "Descartar",
+          style: "destructive",
+          onPress: async () => {
+            await StorageService.clearQuizDraft();
+            setIsCompleted(true);
+            disablePrevention();
+            repeat(); // refaz a navegação que tinha sido bloqueada
           },
-          {
-            text: "Salvar e Sair",
-            onPress: async () => {
-              await StorageService.saveQuizDraft({
-                institutionName,
-                currentIndex,
-                answers,
-                updatedAt: new Date().toISOString(),
-              });
-              isCompletedRef.current = true;
-              navigation.dispatch(e.data.action);
-            },
+        },
+        {
+          text: "Salvar e Sair",
+          onPress: async () => {
+            await saveDraft(currentIndex, answers);
+            setIsCompleted(true);
+            disablePrevention();
+            repeat();
           },
-        ]
-      );
-    });
-
-    return unsubscribe;
-  }, [navigation, currentIndex, answers, institutionName]);
+        },
+      ]
+    );
+  });
 
   // Garante que o scroll volte ao topo a cada nova pergunta
   useEffect(() => {
@@ -158,12 +163,7 @@ export default function QuizScreen() {
       [currentQuestion.id]: score,
     };
     setAnswers(updated);
-    StorageService.saveQuizDraft({
-      institutionName,
-      currentIndex,
-      answers: updated,
-      updatedAt: new Date().toISOString(),
-    });
+    saveDraft(currentIndex, updated);
   };
 
   const handleNext = () => {
@@ -185,12 +185,7 @@ export default function QuizScreen() {
     if (currentIndex < totalQuestions - 1) {
       const nextIdx = currentIndex + 1;
       setCurrentIndex(nextIdx);
-      StorageService.saveQuizDraft({
-        institutionName,
-        currentIndex: nextIdx,
-        answers,
-        updatedAt: new Date().toISOString(),
-      });
+      saveDraft(nextIdx, answers);
     } else {
       finishQuiz();
     }
@@ -203,12 +198,7 @@ export default function QuizScreen() {
       } catch (e) {}
       const prevIdx = currentIndex - 1;
       setCurrentIndex(prevIdx);
-      StorageService.saveQuizDraft({
-        institutionName,
-        currentIndex: prevIdx,
-        answers,
-        updatedAt: new Date().toISOString(),
-      });
+      saveDraft(prevIdx, answers);
     }
   };
 
@@ -234,12 +224,14 @@ export default function QuizScreen() {
       }
     }
 
-    isCompletedRef.current = true;
+    // Libera a saída da tela antes de navegar para o resultado
+    setIsCompleted(true);
+    disablePrevention();
     const result = calculateDiagnosticResult(institutionName, answers, allQuestions, sector);
     await StorageService.saveDiagnostic(result);
     await StorageService.clearQuizDraft();
 
-    navigation.replace("Result", { result });
+    router.replace({ pathname: "/result", params: { id: result.id } });
   };
 
   const pillarColor = PILLAR_COLORS[currentQuestion.pillar];

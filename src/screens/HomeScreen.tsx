@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RootStackParamList } from "../navigation/types";
 import { StorageService, QuizDraft } from "../services/storage";
 import { PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { Pillar } from "../types";
@@ -32,8 +30,7 @@ const POPULAR_SECTORS = [
 ];
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const isFocused = useIsFocused();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [institutionName, setInstitutionName] = useState("");
@@ -62,10 +59,13 @@ export default function HomeScreen() {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (e) {}
-    navigation.navigate("Quiz", {
-      institutionName: draft.institutionName,
-      sector: sector.trim() || "Geral",
-      resumeDraft: true,
+    router.push({
+      pathname: "/quiz",
+      params: {
+        institutionName: draft.institutionName,
+        sector: draft.sector || sector.trim() || "Geral",
+        resumeDraft: "1",
+      },
     });
   };
 
@@ -77,11 +77,12 @@ export default function HomeScreen() {
     setDraft(null);
   };
 
-  useEffect(() => {
-    if (isFocused) {
+  // Recarrega os dados sempre que a aba Início ganha foco
+  useFocusEffect(
+    useCallback(() => {
       loadData();
-    }
-  }, [isFocused]);
+    }, [])
+  );
 
   const handleStart = async () => {
     const finalName = institutionName.trim() || "Minha Organização";
@@ -93,9 +94,9 @@ export default function HomeScreen() {
       state: "",
     });
 
-    navigation.navigate("Quiz", {
-      institutionName: finalName,
-      sector: finalSector,
+    router.push({
+      pathname: "/quiz",
+      params: { institutionName: finalName, sector: finalSector },
     });
   };
 

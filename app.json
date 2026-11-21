@@ -2,15 +2,11 @@
   "expo": {
     "name": "Eco Diagnóstico",
     "slug": "eco-diagnostico",
+    "scheme": "ecodiagnostico",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/avatar-github.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/avatar-github.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ecodiagnostico.app"
@@ -33,7 +29,18 @@
     },
     "owner": "duuhbraga",
     "plugins": [
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/avatar-github.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-status-bar",
+      "expo-router"
     ]
   }
 }

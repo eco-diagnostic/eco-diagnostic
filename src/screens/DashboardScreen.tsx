@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,10 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RootStackParamList } from "../navigation/types";
 import { StorageService } from "../services/storage";
 import { DiagnosticResult, Pillar } from "../types";
 import { PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
@@ -18,8 +16,7 @@ import RadarChart from "../components/RadarChart";
 import * as Haptics from "expo-haptics";
 
 export default function DashboardScreen() {
-  const isFocused = useIsFocused();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [latest, setLatest] = useState<DiagnosticResult | null>(null);
@@ -42,11 +39,12 @@ export default function DashboardScreen() {
     }
   };
 
-  useEffect(() => {
-    if (isFocused) {
+  // Recarrega o último diagnóstico sempre que a aba Painel ganha foco
+  useFocusEffect(
+    useCallback(() => {
       loadLatest();
-    }
-  }, [isFocused]);
+    }, [])
+  );
 
   if (!latest) {
     return (
@@ -58,7 +56,9 @@ export default function DashboardScreen() {
         </Text>
         <TouchableOpacity
           style={styles.emptyButton}
-          onPress={() => navigation.navigate("Quiz", { institutionName: "Minha Organização" })}
+          onPress={() =>
+            router.push({ pathname: "/quiz", params: { institutionName: "Minha Organização" } })
+          }
         >
           <Play size={18} color="#ffffff" fill="#ffffff" />
           <Text style={styles.emptyButtonText}>Começar Agora</Text>
@@ -194,7 +194,15 @@ export default function DashboardScreen() {
       {/* BOTÃO PARA REFAZER / NOVO DIAGNÓSTICO */}
       <TouchableOpacity
         style={styles.retestButton}
-        onPress={() => navigation.navigate("Quiz", { institutionName: latest.institutionName })}
+        onPress={() =>
+          router.push({
+            pathname: "/quiz",
+            params: {
+              institutionName: latest.institutionName,
+              sector: latest.sector ?? "Geral",
+            },
+          })
+        }
       >
         <TrendingUp size={20} color="#ffffff" />
         <Text style={styles.retestButtonText}>Realizar Nova Avaliação</Text>

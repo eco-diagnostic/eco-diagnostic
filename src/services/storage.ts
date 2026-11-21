@@ -14,6 +14,7 @@ export interface InstitutionInfo {
 
 export interface QuizDraft {
   institutionName: string;
+  sector?: string;
   currentIndex: number;
   answers: Record<string, number>;
   updatedAt: string;
@@ -41,10 +42,15 @@ export const StorageService = {
   },
 
   async saveDiagnostic(result: DiagnosticResult): Promise<void> {
-    memoryDiagnostics = [result, ...memoryDiagnostics];
+    const existing = await this.getDiagnostics();
+    const alreadySaved = existing.some((d) => d.id === result.id);
+    // Diagnóstico novo entra no topo; um já salvo (ex.: ao gerar a consultoria de IA depois)
+    // é atualizado no mesmo lugar, para não bagunçar a ordem do histórico e do painel.
+    const updated = alreadySaved
+      ? existing.map((d) => (d.id === result.id ? result : d))
+      : [result, ...existing];
+    memoryDiagnostics = updated;
     try {
-      const existing = await this.getDiagnostics();
-      const updated = [result, ...existing.filter((d) => d.id !== result.id)];
       await AsyncStorage.setItem(DIAGNOSTICS_KEY, JSON.stringify(updated));
     } catch (e) {
       console.warn("StorageService saveDiagnostic fallback:", e);
@@ -52,10 +58,10 @@ export const StorageService = {
   },
 
   async deleteDiagnostic(id: string): Promise<void> {
-    memoryDiagnostics = memoryDiagnostics.filter((d) => d.id !== id);
+    const existing = await this.getDiagnostics();
+    const updated = existing.filter((d) => d.id !== id);
+    memoryDiagnostics = updated;
     try {
-      const existing = await this.getDiagnostics();
-      const updated = existing.filter((d) => d.id !== id);
       await AsyncStorage.setItem(DIAGNOSTICS_KEY, JSON.stringify(updated));
     } catch (e) {
       console.warn("StorageService deleteDiagnostic fallback:", e);

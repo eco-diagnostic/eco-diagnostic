@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,8 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RootStackParamList } from "../navigation/types";
 import { PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { Pillar, DiagnosticResult, AiConsultancyResult } from "../types";
 import {
@@ -41,16 +39,67 @@ import {
 import { generateAiConsultancy } from "../services/aiService";
 import { StorageService } from "../services/storage";
 
-type ResultScreenRouteProp = RouteProp<RootStackParamList, "Result">;
+// Mostra o modelo que de fato respondeu (o app cai para um modelo reserva se o principal estiver indisponível)
+function getModelLabel(model?: string): string {
+  const version = model?.match(/gemini-(\d+(?:\.\d+)?)/i)?.[1];
+  return version ? `Gemini ${version}` : "Gemini";
+}
 
+/**
+ * Rota /result?id=<id>: o Expo Router só passa texto pela URL, então a tela recebe o id
+ * do diagnóstico e carrega o resultado completo do armazenamento local (AsyncStorage).
+ */
 export default function ResultScreen() {
-  const route = useRoute<ResultScreenRouteProp>();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const router = useRouter();
+  const [initialResult, setInitialResult] = useState<DiagnosticResult | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    StorageService.getDiagnostics().then((list) => {
+      if (!active) return;
+      const found = list.find((d) => d.id === id);
+      if (found) setInitialResult(found);
+      else setNotFound(true);
+    });
+    return () => {
+      active = false; // cleanup: evita atualizar estado depois que a tela foi fechada
+    };
+  }, [id]);
+
+  if (notFound) {
+    return (
+      <View style={styles.centerBox}>
+        <AlertTriangle size={40} color="#dc2626" />
+        <Text style={styles.centerTitle}>Diagnóstico não encontrado</Text>
+        <Text style={styles.centerText}>Ele pode ter sido excluído do histórico.</Text>
+        <TouchableOpacity style={styles.doneButton} onPress={() => router.replace("/")}>
+          <Home size={18} color="#ffffff" />
+          <Text style={styles.doneButtonText}>Voltar à Página Principal</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!initialResult) {
+    return (
+      <View style={styles.centerBox}>
+        <ActivityIndicator size="large" color="#059669" />
+      </View>
+    );
+  }
+
+  return <ResultContent initialResult={initialResult} />;
+}
+
+function ResultContent({ initialResult }: { initialResult: DiagnosticResult }) {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [currentResult, setCurrentResult] = useState<DiagnosticResult>(route.params.result);
+  const [currentResult, setCurrentResult] = useState<DiagnosticResult>(initialResult);
   const [aiConsultancy, setAiConsultancy] = useState<AiConsultancyResult | null>(
-    route.params.result.aiConsultancy || null
+    initialResult.aiConsultancy || null
   );
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -306,7 +355,7 @@ export default function ResultScreen() {
       </View>
 
       {/* ========================================================= */}
-      {/* SEÇÃO DA INTELIGÊNCIA ARTIFICIAL (GEMINI 3.8)             */}
+      {/* SEÇÃO DA INTELIGÊNCIA ARTIFICIAL (GEMINI)                 */}
       {/* ========================================================= */}
       <View style={styles.aiCard}>
         <View style={styles.aiHeader}>
@@ -319,7 +368,7 @@ export default function ResultScreen() {
                 <Text style={styles.aiTitle}>Consultoria com IA</Text>
                 <View style={styles.aiTag}>
                   <Zap size={11} color="#059669" />
-                  <Text style={styles.aiTagText}>Gemini 3.8</Text>
+                  <Text style={styles.aiTagText}>{getModelLabel(aiConsultancy?.model)}</Text>
                 </View>
               </View>
               <Text style={styles.aiSubtitle} numberOfLines={1}>
@@ -630,7 +679,7 @@ export default function ResultScreen() {
         {/* VOLTAR AO INÍCIO */}
         <TouchableOpacity
           style={styles.doneButton}
-          onPress={() => navigation.navigate("HomeTabs")}
+          onPress={() => router.dismissTo("/")}
           activeOpacity={0.8}
         >
           <Home size={18} color="#ffffff" />
@@ -645,6 +694,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f3f4f6",
+  },
+  centerBox: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    gap: 10,
+    backgroundColor: "#f3f4f6",
+  },
+  centerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  centerText: {
+    fontSize: 13,
+    color: "#6b7280",
+    textAlign: "center",
+    marginBottom: 12,
   },
   content: {
     padding: 16,

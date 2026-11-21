@@ -8,8 +8,12 @@ export const AI_CONFIG = {
   // Modelo principal ativo e validado
   defaultModel: "gemini-3.8-flash",
 
-  // Modelos de fallback automático caso haja indisponibilidade temporária de cota
-  fallbackModels: ["gemini-3.5-flash", "gemini-flash-latest"],
+  // Modelos de fallback automático caso o principal esteja indisponível
+  // (ex.: erro 503 de alta demanda ou limite de cota)
+  fallbackModels: ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"],
+
+  // Tempo máximo de espera por modelo antes de tentar o próximo (ms)
+  requestTimeoutMs: 40000,
 
   // Endpoint oficial da API do Gemini
   baseUrl: "https://generativelanguage.googleapis.com/v1beta/models",

@@ -78,13 +78,37 @@ Regras:
 }
 
 /**
+ * Traduz a última falha da IA em uma mensagem amigável para exibir na tela.
+ */
+function friendlyAiErrorMessage(lastStatus: number | null, lastError: any): string {
+  if (lastStatus === 503 || lastStatus === 429) {
+    return "Os servidores de IA estão sobrecarregados no momento. Aguarde alguns segundos e tente novamente.";
+  }
+  if (lastStatus === 400 || lastStatus === 401 || lastStatus === 403) {
+    return "A chave da API do Gemini foi recusada. Verifique a variável EXPO_PUBLIC_GEMINI_API_KEY.";
+  }
+  if (lastError?.name === "AbortError") {
+    return "A IA demorou demais para responder. Tente novamente.";
+  }
+  if (lastError instanceof TypeError || /network/i.test(String(lastError?.message))) {
+    return "Sem conexão com a internet. Verifique a rede e tente novamente.";
+  }
+  return "Não foi possível gerar a consultoria agora. Tente novamente.";
+}
+
+/**
  * Chama o Gemini API tentando o modelo principal e caindo em modelos de fallback se necessário.
  */
 async function callGeminiApi(prompt: string, apiKey: string): Promise<{ text: string; model: string }> {
   const modelsToTry = [AI_CONFIG.defaultModel, ...AI_CONFIG.fallbackModels];
   let lastError: any = null;
+  let lastStatus: number | null = null;
 
   for (const model of modelsToTry) {
+    // Evita que a tela fique carregando para sempre se um modelo não responder
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), AI_CONFIG.requestTimeoutMs);
+
     try {
       const url = `${AI_CONFIG.baseUrl}/${model}:generateContent?key=${apiKey}`;
       const response = await fetch(url, {
@@ -103,11 +127,13 @@ async function callGeminiApi(prompt: string, apiKey: string): Promise<{ text: st
             },
           ],
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.warn(`Gemini model ${model} returned error status ${response.status}:`, errorText);
+        lastStatus = response.status;
         lastError = new Error(`Falha no modelo ${model} (${response.status}): ${errorText}`);
         continue;
       }
@@ -122,11 +148,14 @@ async function callGeminiApi(prompt: string, apiKey: string): Promise<{ text: st
       return { text: rawText, model };
     } catch (err) {
       console.warn(`Erro ao tentar modelo ${model}:`, err);
+      lastStatus = null;
       lastError = err;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
-  throw lastError || new Error("Não foi possível conectar com os servidores de IA no momento.");
+  throw new Error(friendlyAiErrorMessage(lastStatus, lastError));
 }
 
 /**
