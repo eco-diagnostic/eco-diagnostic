@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import Svg, { Polygon, Line, Circle, Text as SvgText, G } from "react-native-svg";
 import { Pillar } from "../types";
 import { PILLAR_COLORS, PILLAR_NAMES } from "../data/questions";
@@ -17,9 +17,13 @@ const PILLARS_ORDER: { pillar: Pillar; shortName: string; icon: string }[] = [
   { pillar: Pillar.GESTAO, shortName: "Governança", icon: "🏛️" },
 ];
 
-export default function RadarChart({ pillarScores, size = 320 }: RadarChartProps) {
+export default function RadarChart({ pillarScores, size: sizeProp = 320 }: RadarChartProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  // Cabe na largura do cartão (tela menos margens da tela e do cartão): sem isso, os rótulos
+  // dos eixos laterais eram cortados em celulares estreitos.
+  const size = Math.min(sizeProp, screenWidth - 76);
   const center = size / 2;
-  const radius = (size / 2) - 48; // margem para rótulos externos
+  const radius = size / 2 - 70; // margem para os rótulos externos
   const levels = [25, 50, 75, 100];
   const count = PILLARS_ORDER.length;
 
@@ -67,7 +71,7 @@ export default function RadarChart({ pillarScores, size = 320 }: RadarChartProps
       </Text>
 
       <View style={styles.svgContainer}>
-        <Svg width={size} height={size}>
+        <Svg width={size} height={center + radius + 44}>
           {/* Círculos / Polígonos de Grade */}
           {gridPolygons.map((grid) => (
             <Polygon
@@ -137,26 +141,25 @@ export default function RadarChart({ pillarScores, size = 320 }: RadarChartProps
 
           {/* Rótulos externos nos vértices */}
           {PILLARS_ORDER.map((item, i) => {
-            const labelDist = radius + 22;
+            const labelDist = radius + 16;
             const { x, y } = getCoordinates(angles[i], labelDist);
             const score = pillarScores?.[item.pillar] ?? 0;
 
-            // Ajuste fino do alinhamento do texto dependendo da posição angular
-            let textAnchor: "middle" | "start" | "end" = "middle";
-            if (Math.cos(angles[i]) > 0.3) textAnchor = "start";
-            else if (Math.cos(angles[i]) < -0.3) textAnchor = "end";
+            // Rótulos centralizados no vértice: acima dos eixos de cima e abaixo dos de baixo
+            const sin = Math.sin(angles[i]);
+            const yOffset = sin < -0.9 ? -6 : sin < 0 ? -8 : 14;
 
             return (
               <SvgText
                 key={`label-${item.pillar}`}
                 x={x}
-                y={y + (angles[i] < 0 ? -4 : 8)}
+                y={y + yOffset}
                 fill="#1e293b"
                 fontSize="11"
                 fontWeight="bold"
-                textAnchor={textAnchor}
+                textAnchor="middle"
               >
-                {`${item.icon} ${item.shortName} (${score})`}
+                {`${item.shortName} (${score})`}
               </SvgText>
             );
           })}

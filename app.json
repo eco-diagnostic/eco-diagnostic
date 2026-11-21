@@ -40,7 +40,16 @@
         }
       ],
       "expo-status-bar",
-      "expo-router"
+      "expo-router",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
+        }
+      ],
+      "expo-asset"
     ]
   }
 }

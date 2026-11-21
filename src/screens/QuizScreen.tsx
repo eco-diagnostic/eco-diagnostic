@@ -7,8 +7,6 @@ import {
   ScrollView,
   ScrollViewInstance,
   Alert,
-  Vibration,
-  Platform,
 } from "react-native";
 import { useLocalSearchParams, usePreventRemove, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,7 +14,7 @@ import { allQuestions, PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { calculateDiagnosticResult } from "../services/calc";
 import { StorageService, QuizDraft } from "../services/storage";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react-native";
-import * as Haptics from "expo-haptics";
+import { feedback } from "../services/feedback";
 import { Pillar } from "../types";
 
 const PILLAR_THEMES: Record<Pillar, { border: string; bg: string }> = {
@@ -151,13 +149,7 @@ export default function QuizScreen() {
   }, [currentIndex]);
 
   const handleSelectOption = (score: number) => {
-    try {
-      Haptics.selectionAsync();
-    } catch (e) {
-      if (Platform.OS !== "web") {
-        Vibration.vibrate(35);
-      }
-    }
+    feedback.select();
     const updated = {
       ...answers,
       [currentQuestion.id]: score,
@@ -168,9 +160,7 @@ export default function QuizScreen() {
 
   const handleNext = () => {
     if (selectedScore === undefined) {
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      } catch (e) {}
+      feedback.warning();
       Alert.alert(
         "Selecione uma alternativa",
         "Por favor, escolha uma das opções antes de prosseguir."
@@ -178,9 +168,7 @@ export default function QuizScreen() {
       return;
     }
 
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch (e) {}
+    feedback.next();
 
     if (currentIndex < totalQuestions - 1) {
       const nextIdx = currentIndex + 1;
@@ -193,9 +181,7 @@ export default function QuizScreen() {
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {}
+      feedback.next();
       const prevIdx = currentIndex - 1;
       setCurrentIndex(prevIdx);
       saveDraft(prevIdx, answers);
@@ -206,9 +192,7 @@ export default function QuizScreen() {
     // Verifica se todas foram respondidas
     const unanswered = allQuestions.filter((q) => answers[q.id] === undefined);
     if (unanswered.length > 0) {
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      } catch (e) {}
+      feedback.warning();
       Alert.alert(
         "Questionário Incompleto",
         `Faltam ${unanswered.length} questão(ões) a responder.`
@@ -216,13 +200,7 @@ export default function QuizScreen() {
       return;
     }
 
-    try {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e) {
-      if (Platform.OS !== "web") {
-        Vibration.vibrate([0, 50, 40, 80]);
-      }
-    }
+    feedback.success();
 
     // Libera a saída da tela antes de navegar para o resultado
     setIsCompleted(true);

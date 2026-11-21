@@ -488,11 +488,13 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   inputLabel: {
+    flexShrink: 1,
     fontSize: 13,
     fontWeight: "600",
     color: "#374151",
   },
   clearSectorText: {
+    marginLeft: 10,
     fontSize: 12,
     color: "#ef4444",
     fontWeight: "600",

@@ -3,6 +3,7 @@ import { Pressable } from "react-native";
 import { Tabs } from "expo-router";
 import { Home, LayoutDashboard, History } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import SoundToggle from "../../src/components/SoundToggle";
 
 /**
  * Abas inferiores do app (ergonomia mobile-first):
@@ -45,6 +46,7 @@ export default function TabsLayout() {
         headerStyle: { backgroundColor: "#ffffff" },
         headerTitleStyle: { fontWeight: "bold", color: "#111827" },
         headerShadowVisible: false,
+        headerRight: () => <SoundToggle />,
       }}
     >
       <Tabs.Screen

@@ -31,6 +31,7 @@ import {
 } from "lucide-react-native";
 import RadarChart from "../components/RadarChart";
 import * as Haptics from "expo-haptics";
+import { feedback } from "../services/feedback";
 import {
   generateAndSharePdfReport,
   printPdfReport,
@@ -161,11 +162,11 @@ function ResultContent({ initialResult }: { initialResult: DiagnosticResult }) {
       setAiConsultancy(aiData);
       await StorageService.saveDiagnostic(updated);
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      feedback.success();
     } catch (err: any) {
       console.warn("AI generation failed:", err);
       setAiError(err?.message || "Não foi possível conectar com o serviço de IA no momento.");
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      feedback.error();
     } finally {
       setIsLoadingAi(false);
     }
