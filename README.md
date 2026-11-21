@@ -54,6 +54,7 @@ Capturas reais do app rodando no Expo Go, em um celular Android:
   * Geração de relatório formal em **PDF** executivo com layout A4 (`expo-print`).
   * Compartilhamento direto via WhatsApp, E-mail e redes com a `Share API` nativa e `expo-sharing`.
 * **Experiência Nativa:** Safe Area Insets, feedback tátil (`expo-haptics`), efeitos sonoros curtos (`expo-audio`, com botão de mudo no cabeçalho que respeita o modo silencioso) e proteção de saída acidental no questionário (`usePreventRemove`).
+* **Biometria opcional (`expo-local-authentication`):** depois que a pessoa entra no app, ele oferece uma única vez proteger os diagnósticos com digital ou rosto. Fica desligada por padrão e pode ser ligada ou desligada no cartão "Proteger com biometria" da tela Início. Com a proteção ligada, o app abre numa tela de bloqueio. Só funciona em celular físico com biometria cadastrada (no iPhone, o Face ID não funciona dentro do Expo Go).
 * **Cálculo de Maturidade:**
   * **0 a 39 pts:** Nível Crítico
   * **40 a 69 pts:** Em Desenvolvimento
