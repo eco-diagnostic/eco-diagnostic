@@ -13,6 +13,7 @@ import {
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StorageService, QuizDraft } from "../services/storage";
+import SecurityCard from "../components/SecurityCard";
 import { PILLAR_NAMES, PILLAR_COLORS } from "../data/questions";
 import { Pillar } from "../types";
 import { Zap, Droplets, Trash2, Package, Award, Play, RotateCcw, Building2 } from "lucide-react-native";
@@ -292,6 +293,9 @@ export default function HomeScreen() {
             </View>
           ))}
         </View>
+
+        {/* PROTEÇÃO POR BIOMETRIA (opcional) */}
+        <SecurityCard />
 
         <Text style={styles.footerNote}>
           Eco Diagnóstico Mobile • Metodologia Integrada com Inteligência Artificial
