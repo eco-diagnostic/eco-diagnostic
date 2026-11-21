@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Eco Diagnóstico Mobile — Os 4 Pilares</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  :root {
+    --forest: #0b3d2e; --forest2: #14532d; --green: #16a34a; --emerald: #059669;
+    --mint: #ecfdf5; --soft: #f3faf5; --line: #cfe6d7; --ink: #10211a; --muted: #4a5d52;
+    --amber: #b45309; --red: #b91c1c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide { width: 1280px; height: 720px; position: relative; overflow: hidden; padding: 52px 72px 64px; break-after: page; page-break-after: always; background: #fff; }
+  .slide.dark { background: var(--forest); color: #fff; }
+  .kicker { display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; color: var(--emerald); }
+  .num { width: 40px; height: 40px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 20px; }
+  h1 { font-size: 44px; line-height: 1.12; margin: 14px 0 24px; font-weight: 800; color: var(--forest); letter-spacing: -0.5px; }
+  .dark h1 { color: #fff; }
+  .card { background: var(--soft); border: 1px solid var(--line); border-radius: 20px; padding: 22px 26px; }
+  .card.white { background: #fff; box-shadow: 0 6px 18px rgba(11, 61, 46, 0.08); }
+  .card h3 { margin: 0 0 10px; font-size: 22px; color: var(--forest2); }
+  .row { display: flex; gap: 22px; }
+  .col { flex: 1; min-width: 0; }
+  ul { margin: 0; padding-left: 24px; }
+  li { font-size: 20px; line-height: 1.38; margin-bottom: 8px; }
+  p { font-size: 20px; line-height: 1.4; margin: 0 0 10px; }
+  .small { font-size: 15px; color: var(--muted); line-height: 1.35; }
+  .foot { position: absolute; left: 72px; right: 72px; bottom: 22px; display: flex; justify-content: space-between; font-size: 14px; color: #6b7f73; }
+  .dark .foot { color: #9fc7b3; }
+  .ic { width: 28px; height: 28px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .badge { width: 52px; height: 52px; border-radius: 16px; background: var(--mint); color: var(--emerald); display: grid; place-items: center; border: 1px solid var(--line); flex: none; }
+  .badge .ic { width: 28px; height: 28px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { background: var(--mint); border: 1px solid var(--line); color: var(--forest2); border-radius: 999px; padding: 6px 16px; font-size: 17px; font-weight: 600; }
+  .stat { text-align: left; }
+  .stat b { display: block; font-size: 46px; color: var(--green); line-height: 1; }
+  .stat span { font-size: 17px; color: var(--muted); }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; }
+  th { text-align: left; font-size: 16px; color: var(--muted); font-weight: 600; padding: 8px 14px; }
+  td { font-size: 19px; padding: 9px 14px; background: var(--soft); vertical-align: middle; }
+  tr td:first-child { border-radius: 12px 0 0 12px; font-weight: 600; }
+  tr td:last-child { border-radius: 0 12px 12px 0; }
+  .tight { border-spacing: 0 6px; }
+  .tag { display: inline-block; font-size: 15px; font-weight: 700; padding: 3px 10px; border-radius: 8px; }
+  .tag.g { background: #d9f5e3; color: #0b6b3a; } .tag.o { background: #fde9c8; color: #8a4a05; } .tag.r { background: #fbd9d9; color: #991b1b; } .tag.x { background: #e5ebe7; color: #4a5d52; }
+  .step { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
+  .step .n { width: 36px; height: 36px; border-radius: 50%; background: var(--green); color: #fff; font-weight: 700; display: grid; place-items: center; flex: none; font-size: 18px; margin-top: 2px; }
+  .step p { margin: 0; font-size: 20px; }
+  .issue { display: grid; grid-template-columns: 1.1fr 1fr 1.15fr; gap: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); margin-bottom: 12px; background: #fff; }
+  .issue > div { padding: 12px 18px; font-size: 17px; line-height: 1.32; }
+  .issue > div:nth-child(1) { background: #fdf3e3; } .issue > div:nth-child(2) { background: var(--soft); } .issue > div:nth-child(3) { background: var(--mint); }
+  .issue .h { display: block; font-size: 13px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+  .issue b { font-weight: 700; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 0.92em; background: rgba(11, 61, 46, 0.08); padding: 1px 6px; border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
+  <symbol id="i-vib" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="16" rx="1"/><path d="M2 8l2 2-2 2 2 2-2 2M22 8l-2 2 2 2-2 2 2 2"/></symbol>
+  <symbol id="i-tabs" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+  <symbol id="i-draft" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5Z"/><path d="M14 2v6h6"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+</svg>
+
+<!-- 1. CAPA -->
+<section class="slide dark" id="s1" style="padding:0">
+  <svg id="coverRadar" width="640" height="640" viewBox="0 0 640 640" style="position:absolute; right:-70px; top:40px; opacity:.9"></svg>
+  <div style="position:absolute; left:72px; top:70px; display:flex; align-items:center; gap:18px">
+    <img src="../../assets/avatar-github.png" alt="Logo Eco Diagnóstico" style="width:84px;height:84px;border-radius:22px" />
+    <div style="font-size:22px; font-weight:600; color:#bfe8d0">Centro Universitário Módulo</div>
+  </div>
+  <div style="position:absolute; left:72px; top:230px; width:700px">
+    <div style="font-size:22px; font-weight:600; color:#86e0ac; margin-bottom:14px">Trabalho Final · Aplicativo móvel com React Native e Expo</div>
+    <div style="font-size:78px; line-height:1.02; font-weight:800; letter-spacing:-1.5px">Eco<br/>Diagnóstico</div>
+    <div style="font-size:26px; line-height:1.35; color:#d5efe0; margin-top:24px">Diagnóstico de maturidade sustentável e plano de ação com IA, direto no celular.</div>
+  </div>
+  <div style="position:absolute; left:72px; bottom:56px; font-size:19px; color:#9fc7b3">Os 4 pilares: Motivação · Grupo · Desafios · Benchmarking &nbsp;|&nbsp; Novembro de 2026</div>
+</section>
+
+<!-- 2. PILAR 1 · DOR E PERSONA -->
+<section class="slide" id="s2">
+  <div class="kicker"><div class="num">1</div>Motivação do projeto</div>
+  <h1>Medir sustentabilidade ainda é difícil de começar</h1>
+  <div class="row">
+    <div class="col card">
+      <h3>A dor</h3>
+      <ul>
+        <li>Gestores de empresas e escolas não sabem em que nível de maturidade sustentável estão.</li>
+        <li>Muitos diagnósticos ESG dependem de consultoria ou de formulários longos.</li>
+        <li>Sem nota por tema, fica difícil priorizar: energia, água, resíduos, materiais ou governança?</li>
+      </ul>
+    </div>
+    <div class="col card white">
+      <h3>Persona (ilustrativa)</h3>
+      <p><b>Marina, coordenadora administrativa</b> de uma escola privada.</p>
+      <p>Precisa mostrar à diretoria onde a escola está e o que fazer primeiro. Responde durante a ronda pelas áreas, quer resultado em minutos e poder mandar o relatório por WhatsApp.</p>
+      <p class="small">Público-alvo: gestores de PMEs, escolas, clínicas e comércios.</p>
+    </div>
+  </div>
+  <div class="row" style="margin-top:26px; justify-content:space-between; padding:0 12px">
+    <div class="stat"><b>20</b><span>perguntas objetivas</span></div>
+    <div class="stat"><b>5</b><span>pilares ecológicos</span></div>
+    <div class="stat"><b>0–100</b><span>nota e nível de maturidade</span></div>
+    <div class="stat"><b>IA</b><span>plano de ação por setor</span></div>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 3. PILAR 1 · POR QUE MOBILE -->
+<section class="slide" id="s3">
+  <div class="kicker"><div class="num">1</div>Motivação do projeto</div>
+  <h1>Por que isso precisa ser um app, e não só um site</h1>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px">
+    <div class="card white" style="display:flex; gap:14px"><div class="badge"><svg class="ic"><use href="#i-phone"/></svg></div><div><h3 style="font-size:20px;margin-bottom:4px">Responde na ronda</h3><div class="small" style="font-size:17px">Interface pensada para uma mão, com abas inferiores e áreas seguras da tela.</div></div></div>
+    <div class="card white" style="display:flex; gap:14px"><div class="badge"><svg class="ic"><use href="#i-db"/></svg></div><div><h3 style="font-size:20px;margin-bottom:4px">Funciona offline</h3><div class="small" style="font-size:17px">Respostas e histórico ficam no aparelho (AsyncStorage). Só a IA usa internet.</div></div></div>
+    <div class="card white" style="display:flex; gap:14px"><div class="badge"><svg class="ic"><use href="#i-draft"/></svg></div><div><h3 style="font-size:20px;margin-bottom:4px">Rascunho automático</h3><div class="small" style="font-size:17px">Cada resposta é salva. Sair no meio pergunta: salvar ou descartar.</div></div></div>
+    <div class="card white" style="display:flex; gap:14px"><div class="badge"><svg class="ic"><use href="#i-share"/></svg></div><div><h3 style="font-size:20px;margin-bottom:4px">Compartilhar o PDF</h3><div class="small" style="font-size:17px">Relatório de 1 página direto para WhatsApp ou e-mail, pela folha nativa.</div></div></div>
+    <div class="card white" style="display:flex; gap:14px"><div class="badge"><svg class="ic"><use href="#i-vib"/></svg></div><div><h3 style="font-size:20px;margin-bottom:4px">Feedback tátil</h3><div class="small" style="font-size:17px">Vibração ao escolher respostas e ao concluir (expo-haptics).</div></div></div>
+    <div class="card white" style="display:flex; gap:14px"><div class="badge"><svg class="ic"><use href="#i-tabs"/></svg></div><div><h3 style="font-size:20px;margin-bottom:4px">Navegação mobile-first</h3><div class="small" style="font-size:17px">Expo Router com abas: Início, Painel ESG e Histórico.</div></div></div>
+  </div>
+  <div class="card" style="margin-top:22px; display:flex; align-items:center; gap:16px">
+    <div class="badge" style="background:#fff"><svg class="ic"><use href="#i-lock"/></svg></div>
+    <p style="margin:0; font-size:19px">A versão web do projeto existe (branch <code>master</code>, Next.js). O app foi escrito do zero em React Native: <b>não é um web wrapper</b>.</p>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 4. O APP -->
+<section class="slide" id="s4">
+  <div class="kicker"><div class="num">1</div>Motivação do projeto · o produto</div>
+  <h1>Como o Eco Diagnóstico funciona</h1>
+  <div class="row" style="align-items:flex-start">
+    <div class="col" style="flex:1.15">
+      <div class="step"><div class="n">1</div><p><b>Informe a organização e o setor</b> (saúde, educação, tecnologia, varejo…).</p></div>
+      <div class="step"><div class="n">2</div><p><b>Responda 20 perguntas</b>, 4 por pilar: energia, água, resíduos, materiais e governança.</p></div>
+      <div class="step"><div class="n">3</div><p><b>Veja a nota de 0 a 100</b>, o nível de maturidade, o radar e o pilar crítico.</p></div>
+      <div class="step"><div class="n">4</div><p><b>Gere o plano de ação com IA</b> (Gemini) e exporte o PDF de 1 página.</p></div>
+      <div class="chips" style="margin-top:20px">
+        <span class="chip">React Native</span><span class="chip">Expo SDK 58</span><span class="chip">Expo Router</span><span class="chip">TypeScript</span><span class="chip">AsyncStorage</span><span class="chip">Gemini API</span>
+      </div>
+    </div>
+    <div class="col card white" style="flex:0.85; text-align:center; padding:16px 12px">
+      <svg id="appRadar" width="400" height="300" viewBox="-50 0 400 300"></svg>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:2px">
+        <span class="tag r">0–39 Crítico</span><span class="tag o">40–69 Em desenvolvimento</span><span class="tag g">70–89 Avançado</span><span class="tag g">90–100 Sustentável</span>
+      </div>
+      <div class="small" style="margin-top:8px">Exemplo ilustrativo do gráfico de radar</div>
+    </div>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 5. PILAR 2 · GRUPO -->
+<section class="slide" id="s5">
+  <div class="kicker"><div class="num">2</div>O grupo de desenvolvimento</div>
+  <h1>Integrantes e contribuição registrada</h1>
+  <table class="tight">
+    <thead><tr><th style="width:310px">Nome</th><th style="width:130px">RGM</th><th style="width:290px">GitHub</th><th>Commits no repositório</th></tr></thead>
+    <tbody>
+      <tr><td>Eduardo Braga do Prado</td><td>45157006</td><td>EduBraga7</td><td><span class="tag g">App mobile</span></td></tr>
+      <tr><td>Vitor Mariotto</td><td>43325416</td><td>M4riotto</td><td><span class="tag g">Versão web original</span></td></tr>
+      <tr><td>Eric Felix</td><td>48279501</td><td>EricFelixSilva</td><td>—</td></tr>
+      <tr><td>Marcos</td><td>46032207</td><td>não informado</td><td>—</td></tr>
+      <tr><td>Paulo Henrique Bispo Alves</td><td>04599421-8</td><td>pauloalves0</td><td>—</td></tr>
+      <tr><td>Raquel Medeiros Cavalcanti</td><td>41808142</td><td>RaquelMedeirosCavalcanti</td><td>—</td></tr>
+      <tr><td>Tiago de Souza Santana</td><td>41947185</td><td>TiagoSantana21</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="margin-top:10px">Commits conferidos no histórico público de github.com/eco-diagnostic/eco-diagnostic em 20/11/2026. Branch <code>mobile</code>: app. Branch <code>master</code>: versão web.</p>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 6. PILAR 2 · RACI E GESTAO -->
+<section class="slide" id="s6">
+  <div class="kicker"><div class="num">2</div>O grupo de desenvolvimento</div>
+  <h1>Responsabilidades e gestão da squad</h1>
+  <div class="row" style="align-items:flex-start">
+    <div class="col" style="flex:1.2">
+      <table class="tight">
+        <thead><tr><th>Atividade</th><th style="width:96px">Eduardo</th><th style="width:96px">Vitor</th><th style="width:96px">Demais 5</th></tr></thead>
+        <tbody>
+          <tr><td style="font-size:17px">UI/UX e identidade visual</td><td>R/A</td><td>—</td><td>—</td></tr>
+          <tr><td style="font-size:17px">Navegação e telas (Expo Router)</td><td>R/A</td><td>—</td><td>—</td></tr>
+          <tr><td style="font-size:17px">Estado, hooks e dados locais</td><td>R/A</td><td>—</td><td>—</td></tr>
+          <tr><td style="font-size:17px">Integração com IA e relatório PDF</td><td>R/A</td><td>—</td><td>—</td></tr>
+          <tr><td style="font-size:17px">Testes no Expo Go e documentação</td><td>R/A</td><td>—</td><td>—</td></tr>
+          <tr><td style="font-size:17px">Versão web original (base do domínio)</td><td>C</td><td>R/A</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin-top:6px">R = responsável · A = responde pelo resultado · C = consultado (tema e regras vieram da versão web)</p>
+    </div>
+    <div class="col card" style="flex:1">
+      <h3>Como o trabalho foi organizado</h3>
+      <div class="step"><div class="n">1</div><p style="font-size:18px">Reaproveitamento do tema e das regras da versão web.</p></div>
+      <div class="step"><div class="n">2</div><p style="font-size:18px">Início de outubro: app em Expo com armazenamento offline.</p></div>
+      <div class="step"><div class="n">3</div><p style="font-size:18px">Meados de outubro: UX nativa, IA, PDF, rascunhos e radar.</p></div>
+      <div class="step"><div class="n">4</div><p style="font-size:18px">Novembro: Expo Router, SDK 58 e testes em celular físico.</p></div>
+      <p class="small" style="margin-top:6px">O desenvolvimento mobile foi conduzido por um integrante, a partir da versão web desenvolvida por outro.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 7. PILAR 3 · DESAFIOS 1 -->
+<section class="slide" id="s7">
+  <div class="kicker"><div class="num">3</div>Desafios no desenvolvimento · 1 de 3</div>
+  <h1>Ambiente, versões e navegação</h1>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>Expo Go incompatível.</b> Tela: “Project is incompatible with this version of Expo Go”. O Expo Go do celular era SDK 58 e o projeto, SDK 57.</div>
+    <div><span class="h">Como investigamos</span>A própria mensagem mostrava as duas versões. Comparamos com as dependências do projeto.</div>
+    <div><span class="h">Solução</span>Atualização do projeto para o <b>SDK 58</b> e ajuste de tipos que mudaram (ref do <code>ScrollView</code>).</div>
+  </div>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>Celular em dados móveis.</b> O QR do Wi-Fi não conectava, e no SDK 58 o túnel padrão passou a exigir login no Expo.</div>
+    <div><span class="h">Como investigamos</span>Leitura do erro do CLI e do aviso “Log in / Proceed anonymously” no terminal.</div>
+    <div><span class="h">Solução</span>Túnel alternativo <code>--tunnel ngrok</code>, sem conta, e entrada anônima no Expo Go.</div>
+  </div>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>Migrar para o Expo Router.</b> Erro “Couldn’t find a theme”: a versão 58 traz navegação própria, diferente do React Navigation instalado. Objetos também não passam pela rota.</div>
+    <div><span class="h">Como investigamos</span>Pilha de erro, árvore de dependências (<code>npm ls</code>) e tipos do pacote.</div>
+    <div><span class="h">Solução</span>Pacotes duplicados removidos, aba com <code>Pressable</code>, <code>usePreventRemove</code> no lugar de <code>beforeRemove</code> e rota <code>/result?id=</code> carregando do AsyncStorage.</div>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 8. PILAR 3 · DESAFIOS 2 -->
+<section class="slide" id="s8">
+  <div class="kicker"><div class="num">3</div>Desafios no desenvolvimento · 2 de 3</div>
+  <h1>Assincronia, estado e dados</h1>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>API de IA instável.</b> O Gemini respondeu erro 503 (alta demanda) e a tela podia ficar carregando sem fim.</div>
+    <div><span class="h">Como investigamos</span>O log do console mostrou o status e qual modelo falhou. Simulamos 503 e queda de rede.</div>
+    <div><span class="h">Solução</span>Modelos reserva, tempo limite de 40 s (<code>AbortController</code>) e estados de carregando, erro e sucesso com mensagens claras.</div>
+  </div>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>Estado e persistência.</b> Gerar a IA num diagnóstico antigo o movia para o topo do histórico; o setor virava “Geral”; retomar rascunho gravava na organização errada.</div>
+    <div><span class="h">Como investigamos</span>Testes do fluxo completo e leitura dos dados salvos no AsyncStorage.</div>
+    <div><span class="h">Solução</span>Atualização no mesmo lugar, por <code>id</code>, e setor e organização gravados no rascunho.</div>
+  </div>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>PDF no Android.</b> Compartilhar o arquivo gerado falhava com “Not allowed to read file”.</div>
+    <div><span class="h">Como investigamos</span>A mensagem apontava a permissão de leitura do arquivo gerado pelo <code>expo-print</code>.</div>
+    <div><span class="h">Solução</span>Gravar os bytes do PDF em cache com nome legível e compartilhar esse arquivo.</div>
+  </div>
+  <p class="small" style="margin-top:6px">Uso de IA: assistente de código como copiloto na depuração e refatoração. O app foi testado no Expo Go, em celular físico.</p>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 8b. PILAR 3 · DESAFIOS 3 (itens registrados no histórico de commits) -->
+<section class="slide" id="s8b">
+  <div class="kicker"><div class="num">3</div>Desafios no desenvolvimento · 3 de 3</div>
+  <h1>Ergonomia e experiência nativa</h1>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>Efeito de toque nas abas.</b> O ripple padrão do Android nas abas inferiores destoava do visual do app.</div>
+    <div><span class="h">Registro</span>Tratado no commit “fix tab ripple animation”, em outubro.</div>
+    <div><span class="h">Solução</span>Botão de aba sem <code>android_ripple</code>; no Expo Router, um <code>Pressable</code> simples.</div>
+  </div>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>Saída acidental do questionário.</b> Voltar no meio descartaria as respostas sem aviso.</div>
+    <div><span class="h">Registro</span>Tratado no commit “back handler guard”, em outubro.</div>
+    <div><span class="h">Solução</span>Alerta com salvar rascunho ou descartar; hoje feito com <code>usePreventRemove</code>.</div>
+  </div>
+  <div class="issue">
+    <div><span class="h">Desafio</span><b>Áreas seguras da tela.</b> Abas e botões precisam respeitar o notch e a barra de gestos de cada aparelho.</div>
+    <div><span class="h">Registro</span>Tratado no commit “safe area insets”, em outubro.</div>
+    <div><span class="h">Solução</span><code>useSafeAreaInsets</code> na altura das abas e no espaçamento das telas.</div>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 9. PILAR 4 · BENCHMARKING -->
+<section class="slide" id="s9">
+  <div class="kicker"><div class="num">4</div>Benchmarking de mercado</div>
+  <h1>Quem já resolve uma dor parecida</h1>
+  <div class="row">
+    <div class="col card white">
+      <h3>GreenCo ESG Action Toolkit+ AI</h3>
+      <div class="small" style="margin-bottom:8px">App iOS e Android · gratuito · v1.8</div>
+      <p style="font-size:18px; margin-bottom:4px"><b>Pontos fortes</b></p>
+      <ul><li style="font-size:17px">Gratuito, em 8 idiomas, incluindo português.</li><li style="font-size:17px">Vídeos educativos e agente de IA para conceitos de ESG.</li></ul>
+      <p style="font-size:18px; margin:6px 0 4px"><b>Limitações observadas</b></p>
+      <ul><li style="font-size:17px">Promove a consultoria da própria empresa.</li><li style="font-size:17px">Declara coletar nome, e-mail e telefone.</li><li style="font-size:17px">A descrição foca em aprendizado, não em nota por pilar com plano pronto.</li></ul>
+    </div>
+    <div class="col card white">
+      <h3>Diagnóstico de Sustentabilidade (ABES)</h3>
+      <div class="small" style="margin-bottom:8px">Ferramenta web · gratuita · Brasil</div>
+      <p style="font-size:18px; margin-bottom:4px"><b>Pontos fortes</b></p>
+      <ul><li style="font-size:17px">Gratuita e baseada em IBGC, Ethos, Pacto Global e GRI.</li><li style="font-size:17px">Entrega uma análise do estágio de maturidade da gestão.</li></ul>
+      <p style="font-size:18px; margin:6px 0 4px"><b>Limitações observadas</b></p>
+      <ul><li style="font-size:17px">Acesso por link na web: não encontramos app nas lojas.</li><li style="font-size:17px">Pela descrição pública, não cita plano de ação por setor.</li></ul>
+    </div>
+  </div>
+  <p class="small" style="margin-top:12px">O GreenCo ainda não tem avaliações públicas suficientes na App Store; as limitações vêm da leitura das descrições, não de críticas de usuários. Fontes (acesso em 20/11/2026): App Store (GreenCo ESG Advisory) e abes.org.br.</p>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 10. PILAR 4 · DIFERENCIAL -->
+<section class="slide" id="s10">
+  <div class="kicker"><div class="num">4</div>Diferencial competitivo</div>
+  <h1>O que nos diferencia, e os limites do MVP</h1>
+  <div class="row" style="align-items:flex-start">
+    <div class="col" style="flex:1.1">
+      <table class="tight">
+        <thead><tr><th style="width:120px"></th><th>Eco Diagnóstico</th><th>GreenCo</th><th>ABES</th></tr></thead>
+        <tbody>
+          <tr><td style="font-size:17px">Formato</td><td style="font-size:17px">App móvel</td><td style="font-size:17px">App iOS e Android</td><td style="font-size:17px">Web</td></tr>
+          <tr><td style="font-size:17px">Custo</td><td style="font-size:17px">Gratuito</td><td style="font-size:17px">Gratuito</td><td style="font-size:17px">Gratuito</td></tr>
+          <tr><td style="font-size:17px">Foco</td><td style="font-size:17px">Nota + plano de ação</td><td style="font-size:17px">Aprendizado e consultoria</td><td style="font-size:17px">Análise de maturidade</td></tr>
+          <tr><td style="font-size:17px">Dados</td><td style="font-size:17px">No aparelho; IA só se pedida</td><td style="font-size:17px">Pede contato</td><td style="font-size:17px">Não verificado</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:14px">
+        <div class="step"><div class="n" style="background:var(--emerald)"><svg class="ic" style="width:20px;height:20px;stroke:#fff"><use href="#i-spark"/></svg></div><p style="font-size:19px"><b>Proposta única:</b> em minutos, nota por pilar, pilar crítico e plano de ação por setor com IA.</p></div>
+        <div class="step"><div class="n" style="background:var(--emerald)"><svg class="ic" style="width:20px;height:20px;stroke:#fff"><use href="#i-file"/></svg></div><p style="font-size:19px">Relatório PDF de 1 página para compartilhar, sem cadastro.</p></div>
+      </div>
+    </div>
+    <div class="col card" style="flex:0.9; background:#fff7ea; border-color:#f3d9a8">
+      <h3 style="color:#8a4a05">Limites do MVP</h3>
+      <ul>
+        <li style="font-size:18px">A IA depende de internet e da cota gratuita da API.</li>
+        <li style="font-size:18px">O histórico fica só no aparelho, sem backup nem sincronização.</li>
+        <li style="font-size:18px">A chave da API vai embutida no app: ok para projeto acadêmico; em produção passaria por um backend.</li>
+        <li style="font-size:18px">Testes manuais, sem suíte automatizada.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<!-- 11. FECHAMENTO -->
+<section class="slide dark" id="s11" style="padding:0">
+  <svg id="endRadar" width="440" height="440" viewBox="0 0 520 520" style="position:absolute; right:-20px; top:150px; opacity:.6"></svg>
+  <div style="position:absolute; left:72px; top:96px; width:760px">
+    <div style="font-size:22px; font-weight:600; color:#86e0ac; margin-bottom:12px">Resumo</div>
+    <div style="font-size:60px; line-height:1.05; font-weight:800; letter-spacing:-1px">Do diagnóstico ao plano de ação, no bolso</div>
+    <ul style="margin-top:30px; font-size:22px">
+      <li style="font-size:22px">App nativo em React Native com <b>Expo Router</b> e persistência offline.</li>
+      <li style="font-size:22px">Testado em celular físico com Expo Go (SDK 58).</li>
+      <li style="font-size:22px">Próximos passos: backend com sincronização, lembretes por notificação, testes automatizados e publicação na loja.</li>
+    </ul>
+    <div style="margin-top:34px; font-size:22px; color:#d5efe0">Repositório: <b>github.com/eco-diagnostic/eco-diagnostic</b> (branch <code style="background:rgba(255,255,255,.14)">mobile</code>)</div>
+  </div>
+  <div class="foot"><span>Eco Diagnóstico Mobile · Trabalho Final</span><span class="pg"></span></div>
+</section>
+
+<script>
+  // Radar SVG (mesma ideia do gráfico do app): 5 eixos, grade e polígono de dados
+  function radar(svg, size, scores, opt) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const c = size / 2, r = size / 2 - (opt.pad || 40), n = scores.length;
+    const ang = i => -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    const pt = (i, rr) => [c + rr * Math.cos(ang(i)), c + rr * Math.sin(ang(i))];
+    const add = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+    [25, 50, 75, 100].forEach(l => add('polygon', { points: scores.map((_, i) => pt(i, r * l / 100).join(',')).join(' '), fill: 'none', stroke: opt.grid, 'stroke-width': 1.5 }));
+    scores.forEach((_, i) => { const p = pt(i, r); add('line', { x1: c, y1: c, x2: p[0], y2: p[1], stroke: opt.grid, 'stroke-width': 1.5, 'stroke-dasharray': '4 4' }); });
+    add('polygon', { points: scores.map((s, i) => pt(i, r * s / 100).join(',')).join(' '), fill: opt.fill, stroke: opt.stroke, 'stroke-width': 3 });
+    scores.forEach((s, i) => { const p = pt(i, r * s / 100); add('circle', { cx: p[0], cy: p[1], r: opt.dot || 6, fill: opt.colors[i], stroke: opt.ring || '#fff', 'stroke-width': 2.5 }); });
+    if (opt.labels) opt.labels.forEach((t, i) => { const p = pt(i, r + 22); const cx = Math.cos(ang(i)); const a = cx > 0.3 ? 'start' : cx < -0.3 ? 'end' : 'middle'; const e = add('text', { x: p[0], y: p[1] + (Math.sin(ang(i)) < 0 ? -4 : 12), 'text-anchor': a, 'font-size': 15, 'font-weight': 700, fill: '#1e293b', 'font-family': 'Segoe UI, Arial' }); e.textContent = t; });
+  }
+  const cols = ['#eab308', '#0284c7', '#16a34a', '#f97316', '#8b5cf6'];
+  radar(document.getElementById('coverRadar'), 640, [62, 80, 70, 55, 85], { pad: 60, grid: 'rgba(134,224,172,.35)', fill: 'rgba(34,197,94,.22)', stroke: '#86e0ac', colors: cols, ring: '#0b3d2e', dot: 8 });
+  radar(document.getElementById('endRadar'), 520, [70, 84, 88, 75, 82], { pad: 50, grid: 'rgba(134,224,172,.3)', fill: 'rgba(34,197,94,.2)', stroke: '#86e0ac', colors: cols, ring: '#0b3d2e', dot: 7 });
+  radar(document.getElementById('appRadar'), 300, [44, 61, 70, 69, 15], { pad: 56, grid: '#e2e8f0', fill: 'rgba(22,163,74,.28)', stroke: '#16a34a', colors: cols, dot: 6, labels: ['Energia', 'Água', 'Resíduos', 'Materiais', 'Governança'] });
+
+  // Numeração de páginas e modo "?slide=N" (usado só na conferência visual)
+  const slides = [...document.querySelectorAll('.slide')];
+  slides.forEach((s, i) => { const pg = s.querySelector('.pg'); if (pg) pg.textContent = (i + 1) + ' / ' + slides.length; });
+  const only = new URLSearchParams(location.search).get('slide');
+  if (only) slides.forEach((s, i) => { if (String(i + 1) !== only) s.style.display = 'none'; });
+</script>
+</body>
+</html>
