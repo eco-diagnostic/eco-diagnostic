@@ -3,6 +3,8 @@
 > **Aplicativo Mobile Universitário para Diagnóstico de Sustentabilidade, Consultoria de IA e Governança Ecológica (ESG)**  
 > Desenvolvido em **React Native com Expo e TypeScript**, com persistência local offline, geração de relatórios PDF executivos e consultoria automatizada.
 
+Para avaliação acadêmica: consulte o [roteiro de demonstração e critérios de aceite](docs/AVALIACAO.md), com a metodologia de cálculo, os testes e as melhorias propostas.
+
 ---
 
 ## 🌟 Visão Geral do Aplicativo
@@ -81,13 +83,13 @@ A consultoria com IA usa a API do Google Gemini. Sem a chave, o restante do app 
    ```
 3. Se o servidor já estiver rodando, reinicie com o cache limpo: `npx expo start --clear`.
 
-> O `.env` está no `.gitignore` e não vai para o GitHub nem para o build do EAS. Para gerar o APK com a IA funcionando, cadastre a mesma variável em **expo.dev → projeto → Environment variables** (ambiente *preview*).
+> O `.env` está no `.gitignore` para evitar seu envio ao GitHub. Para configurar a IA no EAS Build, cadastre a variável em **expo.dev → projeto → Environment variables** (ambiente *preview*). Variáveis `EXPO_PUBLIC_*` são incorporadas ao aplicativo e podem ser lidas no pacote distribuído; não são segredos. No protótipo, utilize uma chave de teste com restrições e limites de uso. Para distribuição pública, a integração deve passar por um backend que mantenha a chave no servidor.
 
 ### 3. Iniciar o Servidor de Desenvolvimento
 Na raiz do projeto:
 
 ```bash
-npm install
+npm ci
 npx expo start
 ```
 > **Dica para redes móveis (4G/5G) ou redes Wi-Fi separadas:** Use o túnel para conectar de qualquer lugar:
@@ -101,6 +103,20 @@ npx expo start
 ### 4. Abrir no Celular
 * **Android:** Abra o aplicativo **Expo Go** e toque em **"Scan QR Code"** para apontar a câmera para o QR Code no terminal.
 * **iPhone:** Abra a câmera nativa do iOS, aponte para o QR Code e toque no banner do Expo.
+
+---
+
+## 🧪 Verificações de Qualidade
+
+Com as dependências instaladas e Node.js 24:
+
+```bash
+npm run check
+```
+
+O comando verifica os tipos de todo o aplicativo e executa 12 testes automatizados do cálculo e do HTML do relatório. Não precisa de celular, chave de IA ou acesso ao Gemini. Para executar separadamente, use `npm run typecheck` e `npm test`.
+
+Os testes verificam notas de 0 e 100, limites de classificação, pesos, pilar crítico, respostas inválidas e escape de textos externos no relatório. A compilação dos módulos testados fica na pasta temporária `.test-build/`, ignorada pelo Git. A impressão e o compartilhamento nativos precisam de teste manual no dispositivo, conforme o [roteiro de avaliação](docs/AVALIACAO.md).
 
 ---
 
