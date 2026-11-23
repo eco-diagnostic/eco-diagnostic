@@ -200,15 +200,21 @@ export default function QuizScreen() {
       return;
     }
 
-    feedback.success();
+    let result;
+    try {
+      result = calculateDiagnosticResult(institutionName, answers, allQuestions, sector);
+    } catch (error) {
+      feedback.warning();
+      Alert.alert("Revise as respostas", error instanceof Error ? error.message : "Não foi possível calcular o diagnóstico.");
+      return;
+    }
 
-    // Libera a saída da tela antes de navegar para o resultado
-    setIsCompleted(true);
-    disablePrevention();
-    const result = calculateDiagnosticResult(institutionName, answers, allQuestions, sector);
     await StorageService.saveDiagnostic(result);
     await StorageService.clearQuizDraft();
 
+    feedback.success();
+    setIsCompleted(true);
+    disablePrevention();
     router.replace({ pathname: "/result", params: { id: result.id } });
   };
 

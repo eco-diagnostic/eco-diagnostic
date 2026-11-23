@@ -1,5 +1,32 @@
 import { Pillar, MaturityLevel, DiagnosticResult, Question } from "../types";
-import { PILLAR_NAMES } from "../data/questions";
+
+/** Impede que rascunhos incompletos ou incompatíveis produzam notas enganosas. */
+function validateAnswers(answers: Record<string, number>, questions: Question[]): void {
+  const questionIds = new Set<string>();
+  const pillars = new Set<Pillar>();
+
+  for (const question of questions) {
+    if (questionIds.has(question.id)) {
+      throw new Error(`Questão duplicada no questionário: ${question.id}.`);
+    }
+    questionIds.add(question.id);
+    pillars.add(question.pillar);
+
+    if (!Object.values(Pillar).includes(question.pillar) || !Number.isFinite(question.weight) || question.weight <= 0) {
+      throw new Error(`Configuração inválida da questão ${question.id}.`);
+    }
+
+    const score = answers[question.id];
+    if (!Object.prototype.hasOwnProperty.call(answers, question.id) || !Number.isFinite(score) || score < 0 || score > 100 ||
+        !question.options.some((option) => option.score === score)) {
+      throw new Error(`Responda novamente à questão "${question.title}" antes de concluir.`);
+    }
+  }
+
+  if (pillars.size !== Object.values(Pillar).length) {
+    throw new Error("O questionário deve avaliar os cinco pilares de sustentabilidade.");
+  }
+}
 
 export function calculateDiagnosticResult(
   institutionName: string,
@@ -7,6 +34,7 @@ export function calculateDiagnosticResult(
   questions: Question[],
   sector?: string
 ): DiagnosticResult {
+  validateAnswers(answers, questions);
   const pillarTotals: Record<Pillar, { weightedScoreSum: number; weightSum: number }> = {
     [Pillar.ENERGIA]: { weightedScoreSum: 0, weightSum: 0 },
     [Pillar.AGUA]: { weightedScoreSum: 0, weightSum: 0 },
@@ -16,8 +44,8 @@ export function calculateDiagnosticResult(
   };
 
   questions.forEach((q) => {
-    const score = answers[q.id] ?? 0;
-    const weight = q.weight || 1.0;
+    const score = answers[q.id];
+    const weight = q.weight;
     pillarTotals[q.pillar].weightedScoreSum += score * weight;
     pillarTotals[q.pillar].weightSum += weight;
   });
@@ -46,7 +74,7 @@ export function calculateDiagnosticResult(
     }
   });
 
-  const overallScore = Math.round(totalScoreSum / 5);
+  const overallScore = Math.round(totalScoreSum / Object.values(Pillar).length);
 
   let maturityLevel: MaturityLevel = "CRITICO";
   if (overallScore >= 90) {
@@ -61,7 +89,6 @@ export function calculateDiagnosticResult(
 
   const recommendations = generateRecommendations(
     criticalPillar,
-    lowestScore,
     answers,
     questions,
     overallScore
@@ -69,7 +96,7 @@ export function calculateDiagnosticResult(
 
   return {
     id: `diag_${Date.now()}`,
-    institutionName: institutionName || "Instituição / Empresa",
+    institutionName: institutionName.trim() || "Instituição / Empresa",
     sector: sector && sector.trim().length > 0 ? sector.trim() : "Geral",
     completedAt: new Date().toISOString(),
     overallScore,
@@ -105,7 +132,6 @@ const QUESTION_RECOMMENDATIONS: Record<string, string> = {
 
 function generateRecommendations(
   criticalPillar: Pillar,
-  score: number,
   answers: Record<string, number>,
   questions: Question[],
   overallScore: number
