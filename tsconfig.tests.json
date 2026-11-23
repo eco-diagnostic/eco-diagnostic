@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "strict": true,
+    "rootDir": "src",
+    "outDir": ".test-build",
+    "types": [],
+    "skipLibCheck": true,
+    "noEmitOnError": true
+  },
+  "include": ["src/services/calc.ts", "src/services/reportHtml.ts", "src/data/questions.ts", "src/types/index.ts"]
+}
