@@ -1,24 +1,19 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DiagnosticResult } from "../types";
+import {
+  InstitutionInfo,
+  QuizDraft,
+  parseDiagnostics,
+  parseInstitution,
+  parseQuizDraft,
+  safeParse,
+} from "./storageValidation";
+
+export type { InstitutionInfo, QuizDraft };
 
 const DIAGNOSTICS_KEY = "@eco_diagnostic_history";
 const INSTITUTION_KEY = "@eco_institution_info";
 const QUIZ_DRAFT_KEY = "@eco_quiz_draft";
-
-export interface InstitutionInfo {
-  name: string;
-  sector: string;
-  city: string;
-  state: string;
-}
-
-export interface QuizDraft {
-  institutionName: string;
-  sector?: string;
-  currentIndex: number;
-  answers: Record<string, number>;
-  updatedAt: string;
-}
 
 // In-memory fallback para garantir que o app nunca trave caso haja qualquer problema de I/O
 let memoryDiagnostics: DiagnosticResult[] = [];
@@ -30,9 +25,16 @@ export const StorageService = {
     try {
       const json = await AsyncStorage.getItem(DIAGNOSTICS_KEY);
       if (json) {
-        const parsed = JSON.parse(json);
-        memoryDiagnostics = parsed;
-        return parsed;
+        const parsed = parseDiagnostics(safeParse(json));
+        if (!parsed) {
+          console.warn("StorageService getDiagnostics: histórico salvo em formato inválido, ignorado.");
+          return memoryDiagnostics;
+        }
+        if (parsed.discarded > 0) {
+          console.warn(`StorageService getDiagnostics: ${parsed.discarded} registro(s) inválido(s) ignorado(s).`);
+        }
+        memoryDiagnostics = parsed.valid;
+        return parsed.valid;
       }
       return memoryDiagnostics;
     } catch (e) {
@@ -81,7 +83,11 @@ export const StorageService = {
     try {
       const json = await AsyncStorage.getItem(INSTITUTION_KEY);
       if (json) {
-        const parsed = JSON.parse(json);
+        const parsed = parseInstitution(safeParse(json));
+        if (!parsed) {
+          console.warn("StorageService getInstitution: dados da instituição inválidos, ignorados.");
+          return memoryInstitution;
+        }
         memoryInstitution = parsed;
         return parsed;
       }
@@ -105,7 +111,11 @@ export const StorageService = {
     try {
       const json = await AsyncStorage.getItem(QUIZ_DRAFT_KEY);
       if (json) {
-        const parsed = JSON.parse(json);
+        const parsed = parseQuizDraft(safeParse(json));
+        if (!parsed) {
+          console.warn("StorageService getQuizDraft: rascunho inválido, ignorado.");
+          return memoryDraft;
+        }
         memoryDraft = parsed;
         return parsed;
       }
