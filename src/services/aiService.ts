@@ -1,6 +1,7 @@
 import { AI_CONFIG } from "../config/aiConfig";
 import { PILLAR_NAMES } from "../data/questions";
-import { DiagnosticResult, AiConsultancyResult, AiInitiative, Pillar } from "../types";
+import { DiagnosticResult, AiConsultancyResult, Pillar } from "../types";
+import { AI_INVALID_FORMAT_MESSAGE, normalizeAiConsultancy } from "./aiValidation";
 
 /**
  * Limpa blocos de código markdown ou caracteres extras ao redor do JSON retornado pela IA.
@@ -171,45 +172,21 @@ export async function generateAiConsultancy(result: DiagnosticResult): Promise<A
   const { text, model } = await callGeminiApi(prompt, apiKey);
 
   const cleanedJson = extractJson(text);
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(cleanedJson);
   } catch (parseError) {
     console.error("Falha ao analisar JSON da IA:", text);
-    throw new Error("A IA respondeu em formato inválido. Tente novamente.");
+    throw new Error(AI_INVALID_FORMAT_MESSAGE);
   }
 
   const sectorName = result.sector && result.sector.trim().length > 0 ? result.sector.trim() : "Geral";
 
-  // Validação e normalização dos dados recebidos
-  const initiatives: AiInitiative[] = Array.isArray(parsed.initiatives)
-    ? parsed.initiatives.slice(0, 3).map((item: any, idx: number) => ({
-        title: String(item.title || `Iniciativa Estratégica ${idx + 1}`),
-        pillar: String(item.pillar || PILLAR_NAMES[result.criticalPillar]),
-        impact: item.impact === "Médio" || item.impact === "Baixo" ? item.impact : "Alto",
-        effort: item.effort === "Alto" || item.effort === "Baixo" ? item.effort : "Médio",
-        description: String(item.description || "Implementação de melhoria contínua e monitoramento dos indicadores."),
-        estimatedReturn: String(item.estimatedReturn || "Eficiência operacional e conformidade regulatória."),
-      }))
-    : [];
-
-  return {
-    executiveSummary:
-      String(parsed.executiveSummary || `Diagnóstico ecológico concluído para o setor ${sectorName}.`),
-    sectorContext: parsed.sectorContext ? String(parsed.sectorContext) : undefined,
-    sectorQuickWin: parsed.sectorQuickWin ? String(parsed.sectorQuickWin) : undefined,
-    criticalPillarDiagnosis:
-      String(
-        parsed.criticalPillarDiagnosis ||
-          `O pilar ${PILLAR_NAMES[result.criticalPillar]} requer intervenção estratégica prioritária no setor ${sectorName}.`
-      ),
-    initiatives,
-    governanceTip:
-      String(
-        parsed.governanceTip ||
-          "Estabeleça um comitê interno mensal para acompanhamento das métricas de sustentabilidade."
-      ),
-    generatedAt: new Date().toISOString(),
+  // Valida o formato completo: JSON válido ainda pode vir como null, lista ou com campos de outro tipo
+  return normalizeAiConsultancy(parsed, {
+    criticalPillarName: PILLAR_NAMES[result.criticalPillar] || result.criticalPillar,
+    sectorName,
     model,
-  };
+    generatedAt: new Date().toISOString(),
+  });
 }

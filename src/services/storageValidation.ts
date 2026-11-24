@@ -1,4 +1,5 @@
 import { DiagnosticResult, MaturityLevel, Pillar } from "../types";
+import { isValidStoredAiConsultancy } from "./aiValidation";
 
 /**
  * Validação dos dados lidos do AsyncStorage.
@@ -80,7 +81,14 @@ export function parseDiagnostics(value: unknown): { valid: DiagnosticResult[]; d
   for (const item of value) {
     if (isValidDiagnostic(item) && !seen.has(item.id)) {
       seen.add(item.id);
-      valid.push(item);
+      // Consultoria de IA corrompida: mantém o diagnóstico e descarta só a consultoria
+      // (ela pode ser gerada de novo pelo botão da tela de resultado)
+      if (item.aiConsultancy !== undefined && !isValidStoredAiConsultancy(item.aiConsultancy)) {
+        const { aiConsultancy: _discarded, ...withoutAi } = item;
+        valid.push(withoutAi);
+      } else {
+        valid.push(item);
+      }
     }
   }
   return { valid, discarded: value.length - valid.length };
