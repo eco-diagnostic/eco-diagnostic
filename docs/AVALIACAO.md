@@ -16,6 +16,8 @@ As notas são indicadores definidos pelo projeto para fins acadêmicos. Não equ
 | A saída do questionário era liberada antes do cálculo | Calcular e validar antes de liberar a navegação; apresentar mensagem para revisar respostas incompatíveis | `src/screens/QuizScreen.tsx` |
 | Nome, setor e textos da IA eram inseridos diretamente no HTML | Escapar caracteres de marcação e separar o template das APIs nativas de impressão | `tests/reportHtml.test.cjs` |
 | Não havia comandos de teste nem de verificação de tipos | Acrescentar `npm run typecheck`, `npm test` e `npm run check`, sem dependências adicionais | `package.json` |
+| O histórico comparava os dois registros mais recentes, mesmo de organizações diferentes | Comparar a avaliação mais recente apenas com a anterior da mesma organização, reconhecendo o nome sem diferenciar maiúsculas, acentos e espaços; ordenar pela data de conclusão | `tests/evolution.test.cjs` |
+| O armazenamento aceitava qualquer JSON salvo e um registro inválido podia quebrar as telas | Validar histórico, instituição e rascunho ao ler do AsyncStorage; descartar registros inválidos ou repetidos e manter os válidos, com compatibilidade para versões anteriores | `tests/storageValidation.test.cjs` |
 
 ## Metodologia de cálculo
 
@@ -43,7 +45,7 @@ npm ci
 npm run check
 ```
 
-São 12 testes utilizando o executor nativo do Node.js. O TypeScript compila apenas os módulos puros para `.test-build/`; nenhum teste chama o Gemini, abre a câmera, imprime ou altera o histórico do aparelho. O comando `typecheck` verifica separadamente os tipos de todo o app.
+São 23 testes utilizando o executor nativo do Node.js. O TypeScript compila apenas os módulos puros para `.test-build/`; nenhum teste chama o Gemini, abre a câmera, imprime ou altera o histórico do aparelho. O comando `typecheck` verifica separadamente os tipos de todo o app.
 
 ## Roteiro de demonstração no celular
 
@@ -68,9 +70,9 @@ Este roteiro descreve os testes manuais a executar. Os testes automatizados não
 | Prioridade | Melhoria | Motivo e critério de aceite |
 | --- | --- | --- |
 | Alta, antes de distribuição pública | Mover a chamada do Gemini para um backend | A chave `EXPO_PUBLIC_GEMINI_API_KEY` fica no bundle. O APK público deve chamar um serviço autenticado, sem conter a chave do provedor |
-| Alta | Validar a estrutura dos dados lidos do AsyncStorage e informar falhas de persistência | O serviço atual aceita o JSON sem conferir o formato e usa memória quando uma gravação falha. Histórico inválido não deve quebrar telas, e a pessoa deve saber quando algo não foi salvo permanentemente |
+| Alta | Informar falhas de persistência | A leitura dos dados já é validada. Quando uma gravação falha, o serviço ainda usa memória sem avisar; a pessoa deve saber quando algo não foi salvo permanentemente |
 | Alta | Validar o esquema completo da resposta de IA | JSON válido pode conter campos ou iniciativas incompatíveis. Exibir erro recuperável quando a estrutura recebida não atender ao contrato |
-| Média | Comparar evolução apenas entre avaliações da mesma organização | Hoje o histórico compara os dois registros mais recentes, mesmo com nomes diferentes. Introduzir um identificador estável e um filtro antes de calcular evolução |
+| Média | Identificador estável de organização | A evolução já compara apenas avaliações com o mesmo nome normalizado. Renomear a organização ainda separa o histórico; um identificador próprio resolveria isso |
 | Média | Tornar a retomada de rascunhos compatível com mudanças no questionário | Validar índice, alternativas e versão das perguntas; orientar revisão quando houver incompatibilidade |
 | Média | Melhorar acessibilidade e testar com leitor de tela | Anunciar alternativa selecionada, descrever botões de ícone e verificar tamanho de fonte ampliado |
 | Média | Revisar paginação e linguagem do relatório | Textos longos de IA podem ultrapassar uma página. Evitar prometer documento oficial ou auditoria concluída em um protótipo de autoavaliação |
