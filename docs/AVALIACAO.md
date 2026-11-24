@@ -18,6 +18,9 @@ As notas são indicadores definidos pelo projeto para fins acadêmicos. Não equ
 | Não havia comandos de teste nem de verificação de tipos | Acrescentar `npm run typecheck`, `npm test` e `npm run check`, sem dependências adicionais | `package.json` |
 | O histórico comparava os dois registros mais recentes, mesmo de organizações diferentes | Comparar a avaliação mais recente apenas com a anterior da mesma organização, reconhecendo o nome sem diferenciar maiúsculas, acentos e espaços; ordenar pela data de conclusão | `tests/evolution.test.cjs` |
 | O armazenamento aceitava qualquer JSON salvo e um registro inválido podia quebrar as telas | Validar histórico, instituição e rascunho ao ler do AsyncStorage; descartar registros inválidos ou repetidos e manter os válidos, com compatibilidade para versões anteriores | `tests/storageValidation.test.cjs` |
+| A resposta da IA só era validada parcialmente: JSON nulo, lista ou iniciativas vazias geravam erro técnico ou texto "[object Object]" | Validar a estrutura completa da resposta, descartar iniciativas inválidas e exibir erro recuperável quando nenhuma for utilizável; remover consultoria salva corrompida mantendo o diagnóstico | `tests/aiValidation.test.cjs` |
+| Toque duplo em "Concluir Avaliação" salvava o mesmo diagnóstico duas vezes; toque duplo na IA disparava duas chamadas | Trava síncrona com `useRef` nas duas ações | `src/screens/QuizScreen.tsx`, `src/screens/ResultScreen.tsx` |
+| O botão do Painel vazio iniciava o questionário como "Minha Organização", sem setor | Usar a organização e o setor salvos na tela Início | `src/screens/DashboardScreen.tsx` |
 
 ## Metodologia de cálculo
 
@@ -45,7 +48,7 @@ npm ci
 npm run check
 ```
 
-São 23 testes utilizando o executor nativo do Node.js. O TypeScript compila apenas os módulos puros para `.test-build/`; nenhum teste chama o Gemini, abre a câmera, imprime ou altera o histórico do aparelho. O comando `typecheck` verifica separadamente os tipos de todo o app.
+São 27 testes utilizando o executor nativo do Node.js. O TypeScript compila apenas os módulos puros para `.test-build/`; nenhum teste chama o Gemini, abre a câmera, imprime ou altera o histórico do aparelho. O comando `typecheck` verifica separadamente os tipos de todo o app.
 
 ## Roteiro de demonstração no celular
 
@@ -71,7 +74,6 @@ Este roteiro descreve os testes manuais a executar. Os testes automatizados não
 | --- | --- | --- |
 | Alta, antes de distribuição pública | Mover a chamada do Gemini para um backend | A chave `EXPO_PUBLIC_GEMINI_API_KEY` fica no bundle. O APK público deve chamar um serviço autenticado, sem conter a chave do provedor |
 | Alta | Informar falhas de persistência | A leitura dos dados já é validada. Quando uma gravação falha, o serviço ainda usa memória sem avisar; a pessoa deve saber quando algo não foi salvo permanentemente |
-| Alta | Validar o esquema completo da resposta de IA | JSON válido pode conter campos ou iniciativas incompatíveis. Exibir erro recuperável quando a estrutura recebida não atender ao contrato |
 | Média | Identificador estável de organização | A evolução já compara apenas avaliações com o mesmo nome normalizado. Renomear a organização ainda separa o histórico; um identificador próprio resolveria isso |
 | Média | Tornar a retomada de rascunhos compatível com mudanças no questionário | Validar índice, alternativas e versão das perguntas; orientar revisão quando houver incompatibilidade |
 | Média | Melhorar acessibilidade e testar com leitor de tela | Anunciar alternativa selecionada, descrever botões de ícone e verificar tamanho de fonte ampliado |
