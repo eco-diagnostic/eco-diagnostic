@@ -10,7 +10,8 @@ import {
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StorageService } from "../services/storage";
-import { DiagnosticResult, Pillar } from "../types";
+import { findEvolution } from "../services/evolution";
+import { DiagnosticResult } from "../types";
 import { PILLAR_NAMES } from "../data/questions";
 import { History, Trash2, ChevronRight, Calendar, AlertTriangle, TrendingUp, TrendingDown, Minus, Award, Sparkles } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -153,22 +154,11 @@ export default function HistoryScreen() {
   };
 
   const renderEvolutionHeader = () => {
-    if (history.length < 2) return null;
+    // Só compara avaliações da mesma organização (ver src/services/evolution.ts)
+    const evolution = findEvolution(history);
+    if (!evolution) return null;
 
-    const latest = history[0];
-    const prev = history[1];
-    const scoreDiff = latest.overallScore - prev.overallScore;
-
-    // Encontra pilar de maior ganho
-    let bestGainPillar: Pillar | null = null;
-    let maxGain = -999;
-    (Object.keys(latest.pillarScores) as Pillar[]).forEach((p) => {
-      const diff = (latest.pillarScores[p] ?? 0) - (prev.pillarScores[p] ?? 0);
-      if (diff > maxGain) {
-        maxGain = diff;
-        bestGainPillar = p;
-      }
-    });
+    const { latest, previous: prev, scoreDiff, bestGainPillar, bestGain: maxGain } = evolution;
 
     const isPositive = scoreDiff > 0;
     const isNegative = scoreDiff < 0;
@@ -197,7 +187,7 @@ export default function HistoryScreen() {
         </View>
 
         <Text style={styles.evolutionDesc}>
-          Comparativo da avaliação mais recente com a anterior (
+          Comparativo da avaliação mais recente de {latest.institutionName} com a anterior da mesma organização (
           {new Date(prev.completedAt).toLocaleDateString("pt-BR")}).
         </Text>
 

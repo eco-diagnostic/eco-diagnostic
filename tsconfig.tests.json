@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "noEmitOnError": true
   },
-  "include": ["src/services/calc.ts", "src/services/reportHtml.ts", "src/data/questions.ts", "src/types/index.ts"]
+  "include": ["src/services/calc.ts", "src/services/evolution.ts", "src/services/reportHtml.ts", "src/data/questions.ts", "src/types/index.ts"]
 }
