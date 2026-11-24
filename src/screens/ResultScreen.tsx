@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -107,6 +107,8 @@ function ResultContent({ initialResult }: { initialResult: DiagnosticResult }) {
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  // Trava síncrona: dois toques rápidos não podem disparar duas chamadas à IA
+  const aiRequestRef = useRef(false);
 
   const getMaturityInfo = () => {
     switch (currentResult.maturityLevel) {
@@ -147,6 +149,8 @@ function ResultContent({ initialResult }: { initialResult: DiagnosticResult }) {
   const sectorLabel = currentResult.sector || "Geral";
 
   const handleGenerateAi = async () => {
+    if (aiRequestRef.current) return;
+    aiRequestRef.current = true;
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setIsLoadingAi(true);
@@ -168,6 +172,7 @@ function ResultContent({ initialResult }: { initialResult: DiagnosticResult }) {
       setAiError(err?.message || "Não foi possível conectar com o serviço de IA no momento.");
       feedback.error();
     } finally {
+      aiRequestRef.current = false;
       setIsLoadingAi(false);
     }
   };

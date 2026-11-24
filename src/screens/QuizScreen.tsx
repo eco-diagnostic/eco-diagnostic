@@ -56,6 +56,8 @@ export default function QuizScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isCompleted, setIsCompleted] = useState(false);
+  // Trava síncrona: um toque duplo em "Concluir" não pode salvar o diagnóstico duas vezes
+  const finishingRef = useRef(false);
   const scrollRef = useRef<ScrollViewInstance>(null);
 
   const currentQuestion = allQuestions[currentIndex];
@@ -189,6 +191,8 @@ export default function QuizScreen() {
   };
 
   const finishQuiz = async () => {
+    if (finishingRef.current) return;
+
     // Verifica se todas foram respondidas
     const unanswered = allQuestions.filter((q) => answers[q.id] === undefined);
     if (unanswered.length > 0) {
@@ -209,6 +213,7 @@ export default function QuizScreen() {
       return;
     }
 
+    finishingRef.current = true;
     await StorageService.saveDiagnostic(result);
     await StorageService.clearQuizDraft();
 

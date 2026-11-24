@@ -114,9 +114,9 @@ Com as dependências instaladas e Node.js 24:
 npm run check
 ```
 
-O comando verifica os tipos de todo o aplicativo e executa 12 testes automatizados do cálculo e do HTML do relatório. Não precisa de celular, chave de IA ou acesso ao Gemini. Para executar separadamente, use `npm run typecheck` e `npm test`.
+O comando verifica os tipos de todo o aplicativo e executa 27 testes automatizados do cálculo, do HTML do relatório, da evolução entre avaliações, da validação dos dados salvos e da resposta da IA. Não precisa de celular, chave de IA ou acesso ao Gemini. Para executar separadamente, use `npm run typecheck` e `npm test`.
 
-Os testes verificam notas de 0 e 100, limites de classificação, pesos, pilar crítico, respostas inválidas e escape de textos externos no relatório. A compilação dos módulos testados fica na pasta temporária `.test-build/`, ignorada pelo Git. A impressão e o compartilhamento nativos precisam de teste manual no dispositivo, conforme o [roteiro de avaliação](docs/AVALIACAO.md).
+Os testes verificam notas de 0 e 100, limites de classificação, pesos, pilar crítico, respostas inválidas, escape de textos externos no relatório, comparação de evolução apenas dentro da mesma organização descarte de dados salvos inválidos e validação do formato da resposta da IA. A compilação dos módulos testados fica na pasta temporária `.test-build/`, ignorada pelo Git. A impressão e o compartilhamento nativos precisam de teste manual no dispositivo, conforme o [roteiro de avaliação](docs/AVALIACAO.md).
 
 ---
 
