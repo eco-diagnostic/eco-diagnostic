@@ -39,6 +39,18 @@ export default function DashboardScreen() {
     }
   };
 
+  // Usa a organização e o setor já informados na tela Início, em vez de um nome genérico sem setor
+  const handleStartFirst = async () => {
+    const institution = await StorageService.getInstitution();
+    router.push({
+      pathname: "/quiz",
+      params: {
+        institutionName: institution?.name.trim() || "Minha Organização",
+        sector: institution?.sector.trim() || "Geral",
+      },
+    });
+  };
+
   // Recarrega o último diagnóstico sempre que a aba Painel ganha foco
   useFocusEffect(
     useCallback(() => {
@@ -56,9 +68,7 @@ export default function DashboardScreen() {
         </Text>
         <TouchableOpacity
           style={styles.emptyButton}
-          onPress={() =>
-            router.push({ pathname: "/quiz", params: { institutionName: "Minha Organização" } })
-          }
+          onPress={handleStartFirst}
         >
           <Play size={18} color="#ffffff" fill="#ffffff" />
           <Text style={styles.emptyButtonText}>Começar Agora</Text>
